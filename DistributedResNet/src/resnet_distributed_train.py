@@ -36,12 +36,12 @@ def main(unused_args):
   else:
     n_workers = len(worker_hosts)
     worker_id = int(FLAGS.task_id)
+    maybe_download_and_extract()
     all_data, all_labels = prepare_train_data(padding_size=FLAGS.padding_size)
     # Only the chief checks for or creates train_dir.
     if FLAGS.task_id == 0:
       if not tf.gfile.Exists(FLAGS.train_dir):
         tf.gfile.MakeDirs(FLAGS.train_dir)
-    maybe_download_and_extract()
     distributed_train.train(server.target, all_data, all_labels, cluster_spec)
 
 if __name__ == '__main__':
