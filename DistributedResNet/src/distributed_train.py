@@ -201,7 +201,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # The following codes calculate the train loss, which is consist of the
         # softmax cross entropy and the relularization loss
 #            regu_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        loss = calc_loss(logits, label_placeholder)
+        total_loss = calc_loss(logits, label_placeholder)
 
         predictions = tf.nn.softmax(logits)
         train_top1_error = top_k_error(predictions, label_placeholder, 1)
@@ -219,7 +219,7 @@ def train(target, all_data, all_labels, cluster_spec):
                 total_num_replicas=num_workers)
 
         # Compute gradients with respect to the loss.
-        grads = opt.compute_gradients(loss)
+        grads = opt.compute_gradients(total_loss)
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
             apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
         else:
