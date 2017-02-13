@@ -175,10 +175,11 @@ def evaluate(eval_data, eval_labels):
       eval_data, eval_labels, batch_size)
     logits = inference(images_placeholder, FLAGS.num_residual_blocks, reuse=False)
 #    validation_loss = mnist.loss(logits, labels_placeholder)
-    validation_loss = loss(logits, labels_placeholder)
     predictions = tf.nn.softmax(logits)
     correct = tf.nn.in_top_k(predictions, labels_placeholder, 1)
-    validation_accuracy = tf.reduce_sum(correct) / tf.constant(batch_size)
+    tmp_c = tf.reduce_sum(tf.cast(correct, tf.int32))
+    validation_accuracy = tf.reduce_sum(tmp_c) / tf.constant(batch_size)
+    validation_loss = loss(logits, labels_placeholder)
 
     # Reference to sess and saver
     sess = tf.Session()
