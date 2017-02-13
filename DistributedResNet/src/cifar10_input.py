@@ -81,7 +81,6 @@ def read_in_all_images(address_list, shuffle=True, is_random_label = False):
     :return: concatenated numpy array of data and labels. Data are in 4D arrays: [num_images,
     image_height, image_width, image_depth] and labels are in 1D arrays: [num_images]
     """
-    maybe_download_and_extract()
     data = np.array([]).reshape([0, IMG_WIDTH * IMG_HEIGHT * IMG_DEPTH])
     label = np.array([])
 

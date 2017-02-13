@@ -7,7 +7,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from distributed_train import *
+import distributed_train
 from cifar10_input import *
 
 FLAGS = tf.app.flags.FLAGS
@@ -41,8 +41,8 @@ def main(unused_args):
     if FLAGS.task_id == 0:
       if not tf.gfile.Exists(FLAGS.train_dir):
         tf.gfile.MakeDirs(FLAGS.train_dir)
-    resnet_dis_train = Train()
-    resnet_dis_train.train(server.target, all_data, all_labels, cluster_spec)
+    maybe_download_and_extract()
+    distributed_train.train(server.target, all_data, all_labels, cluster_spec)
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.DEBUG)
