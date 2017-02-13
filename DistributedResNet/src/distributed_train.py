@@ -104,39 +104,9 @@ RMSPROP_DECAY = 0.9                # Decay term for RMSProp.
 RMSPROP_MOMENTUM = 0.9             # Momentum in RMSProp.
 RMSPROP_EPSILON = 1.0              # Epsilon term for RMSProp.
 
-'''
-def build_train_validation_graph(self, num_examples):
-    global_step = tf.Variable(0, trainable=False)
-    validation_step = tf.Variable(0, trainable=False)
-
-    # Logits of training data and valiation data come from the same graph. The inference of
-    # validation data share all the weights with train data. This is implemented by passing
-    # reuse=True to the variable scopes of train graph
-    logits = inference(self.image_placeholder, FLAGS.num_residual_blocks, reuse=False)
-    vali_logits = inference(self.vali_image_placeholder, FLAGS.num_residual_blocks, reuse=True)
-
-    # The following codes calculate the train loss, which is consist of the
-    # softmax cross entropy and the relularization loss
-    regu_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-    loss = self.loss(logits, self.label_placeholder)
-    self.full_loss = tf.add_n([loss] + regu_losses)
-
-    predictions = tf.nn.softmax(logits)
-    self.train_top1_error = self.top_k_error(predictions, self.label_placeholder, 1)
-
-
-    # Validation loss
-    self.vali_loss = self.loss(vali_logits, self.vali_label_placeholder)
-    vali_predictions = tf.nn.softmax(vali_logits)
-    self.vali_top1_error = self.top_k_error(vali_predictions, self.vali_label_placeholder, 1)
-
-    self.train_op, self.train_ema_op = self.train_operation(global_step, self.full_loss,
-                                                            self.train_top1_error)
-    self.val_op = self.validation_op(validation_step, self.vali_top1_error, self.vali_loss)
-'''
-def fill_feed_dict(all_data, all_labels, image_placeholder, label_placeholder, FLAGS.batch_size):
+def fill_feed_dict(all_data, all_labels, image_placeholder, label_placeholder, batch_size):
     train_batch_data, train_batch_labels = generate_augment_train_batch(
-                        all_data, all_labels, FLAGS.batch_size)
+                        all_data, all_labels, batch_size)
     feed_dict = {image_placeholder: train_batch_data, label_placeholder: train_batch_labels}
     return feed_dict
 

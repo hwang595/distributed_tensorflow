@@ -46,7 +46,7 @@ cfg = Cfg({
     "ps_type" : "t2.large",
     "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-73b23613",
+    "image_id": "ami-0c90176c",
 
     # Launch specifications
     "spot_price" : "0.27",                 # Has to be a string
@@ -73,14 +73,14 @@ cfg = Cfg({
     # Master pre commands are run only by the master
     "master_pre_commands" :
     [
-        "cd distributed_net_workspace/DistributedResNet",
+        "cd distributed_tensorflow/DistributedResNet",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Pre commands are run on every machine before the actual training.
     "pre_commands" :
     [
-        "cd distributed_net_workspace/DistributedResNet",
+        "cd distributed_tensorflow/DistributedResNet",
         "git fetch && git reset --hard origin/master",
     ],
 
@@ -100,7 +100,7 @@ cfg = Cfg({
     # %(...)s - Inserts self referential string value.
     "train_commands" :
     [
-        "python src/mnist_distributed_train.py "
+        "python src/resnet_distributed_train.py "
         "--batch_size=%(batch_size)s "
         "--initial_learning_rate=%(initial_learning_rate)s "
         "--learning_rate_decay_factor=%(learning_rate_decay_factor)s "
