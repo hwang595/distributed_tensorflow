@@ -27,7 +27,6 @@ import cifar10_input
 FLAGS = tf.app.flags.FLAGS
 
 def main(unused_argv=None):
-  dataset = mnist_data.load_mnist()
   if tf.gfile.Exists(FLAGS.eval_dir):
     tf.gfile.DeleteRecursively(FLAGS.eval_dir)
   tf.gfile.MakeDirs(FLAGS.eval_dir)
