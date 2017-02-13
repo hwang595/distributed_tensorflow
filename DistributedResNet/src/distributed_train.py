@@ -110,6 +110,50 @@ def fill_feed_dict(all_data, all_labels, image_placeholder, label_placeholder, b
     feed_dict = {image_placeholder: train_batch_data, label_placeholder: train_batch_labels}
     return feed_dict
 
+## Helper functions
+def calc_loss(logits, labels):
+    '''
+    Calculate the cross entropy loss given logits and true labels
+    :param logits: 2D tensor with shape [batch_size, num_labels]
+    :param labels: 1D tensor with shape [batch_size]
+    :return: loss tensor with shape [1]
+    '''
+    labels = tf.cast(labels, tf.int64)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels, name='cross_entropy_per_example')
+    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+    return cross_entropy_mean
+
+def top_k_error(predictions, labels, k):
+    '''
+    Calculate the top-k error
+    :param predictions: 2D tensor with shape [batch_size, num_labels]
+    :param labels: 1D tensor with shape [batch_size, 1]
+    :param k: int
+    :return: tensor with shape [1]
+    '''
+    batch_size = predictions.get_shape().as_list()[0]
+    in_top1 = tf.to_float(tf.nn.in_top_k(predictions, labels, k=1))
+    num_correct = tf.reduce_sum(in_top1)
+    return (batch_size - num_correct) / float(batch_size)
+
+def generate_augment_train_batch(train_data, train_labels, train_batch_size):
+    '''
+    This function helps generate a batch of train data, and random crop, horizontally flip
+    and whiten them at the same time
+    :param train_data: 4D numpy array
+    :param train_labels: 1D numpy array
+    :param train_batch_size: int
+    :return: augmented train batch data and labels. 4D numpy array and 1D numpy array
+    '''
+    offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
+    batch_data = train_data[offset:offset+train_batch_size, ...]
+    batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
+
+    batch_data = whitening_image(batch_data)
+    batch_label = train_labels[offset:offset+FLAGS.train_batch_size]
+
+    return batch_data, batch_label
+
 
 def train(target, all_data, all_labels, cluster_spec):
     '''
@@ -157,7 +201,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # The following codes calculate the train loss, which is consist of the
         # softmax cross entropy and the relularization loss
 #            regu_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        loss = loss(logits, label_placeholder)
+        loss = calc_loss(logits, label_placeholder)
 
         predictions = tf.nn.softmax(logits)
         train_top1_error = top_k_error(predictions, label_placeholder, 1)
@@ -297,50 +341,6 @@ def train(target, all_data, all_labels, cluster_spec):
             saver.save(sess,
                         os.path.join(FLAGS.train_dir, 'model.ckpt'),
                         global_step=global_step)
-
-## Helper functions
-def loss(logits, labels):
-    '''
-    Calculate the cross entropy loss given logits and true labels
-    :param logits: 2D tensor with shape [batch_size, num_labels]
-    :param labels: 1D tensor with shape [batch_size]
-    :return: loss tensor with shape [1]
-    '''
-    labels = tf.cast(labels, tf.int64)
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels, name='cross_entropy_per_example')
-    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
-    return cross_entropy_mean
-
-def top_k_error(predictions, labels, k):
-    '''
-    Calculate the top-k error
-    :param predictions: 2D tensor with shape [batch_size, num_labels]
-    :param labels: 1D tensor with shape [batch_size, 1]
-    :param k: int
-    :return: tensor with shape [1]
-    '''
-    batch_size = predictions.get_shape().as_list()[0]
-    in_top1 = tf.to_float(tf.nn.in_top_k(predictions, labels, k=1))
-    num_correct = tf.reduce_sum(in_top1)
-    return (batch_size - num_correct) / float(batch_size)
-
-def generate_augment_train_batch(train_data, train_labels, train_batch_size):
-    '''
-    This function helps generate a batch of train data, and random crop, horizontally flip
-    and whiten them at the same time
-    :param train_data: 4D numpy array
-    :param train_labels: 1D numpy array
-    :param train_batch_size: int
-    :return: augmented train batch data and labels. 4D numpy array and 1D numpy array
-    '''
-    offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
-    batch_data = train_data[offset:offset+train_batch_size, ...]
-    batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
-
-    batch_data = whitening_image(batch_data)
-    batch_label = train_labels[offset:offset+FLAGS.train_batch_size]
-
-    return batch_data, batch_label
 
 
 
