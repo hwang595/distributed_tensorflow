@@ -125,7 +125,7 @@ cfg = Cfg({
         "sleep 30",
 
         # Evaluation command
-        "python src/mnist_eval.py "
+        "python src/resnet_eval.py "
         "--eval_dir=%(base_out_dir)s/eval_dir "
         "--checkpoint_dir=%(base_out_dir)s/train_dir "
         "> %(base_out_dir)s/out_evaluator 2>&1 &",
