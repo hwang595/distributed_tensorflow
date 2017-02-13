@@ -22,7 +22,7 @@ from __future__ import print_function
 import tensorflow as tf
 
 import nn_eval
-import cifar10_input
+from cifar10_input import *
 
 FLAGS = tf.app.flags.FLAGS
 
