@@ -173,7 +173,7 @@ def evaluate(eval_data, eval_labels):
     batch_size = num_examples
     images_placeholder, labels_placeholder = generate_vali_batch(
       eval_data, eval_labels, batch_size)
-    logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=False)
+    logits = inference(images_placeholder, FLAGS.num_residual_blocks, reuse=False)
 #    validation_loss = mnist.loss(logits, labels_placeholder)
     validation_loss = loss(logits, labels_placeholder)
     predictions = tf.nn.softmax(vali_logits)
