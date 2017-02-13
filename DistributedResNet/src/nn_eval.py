@@ -176,7 +176,7 @@ def evaluate(eval_data, eval_labels):
     logits = inference(images_placeholder, FLAGS.num_residual_blocks, reuse=False)
 #    validation_loss = mnist.loss(logits, labels_placeholder)
     validation_loss = loss(logits, labels_placeholder)
-    predictions = tf.nn.softmax(vali_logits)
+    predictions = tf.nn.softmax(logits)
     correct = tf.nn.in_top_k(predictions, labels_placeholder, 1)
     validation_accuracy = tf.reduce_sum(correct) / tf.constant(batch_size)
 
