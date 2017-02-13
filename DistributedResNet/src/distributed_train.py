@@ -265,7 +265,7 @@ def train(target, all_data, all_labels, cluster_spec):
                 if FLAGS.timeline_logging:
                     tl = timeline.Timeline(run_metadata.step_stats)
                     ctf = tl.generate_chrome_trace_format()
-                    with open('%s/worker=%d_timeline_iter=%d.json' % (FLAGS.train_dir, FLAGS.task_id, step), 'w')
+                    with open('%s/worker=%d_timeline_iter=%d.json' % (FLAGS.train_dir, FLAGS.task_id, step), 'w'):
                         f.write(ctf)
                 if step > FLAGS.max_steps:
                     break
