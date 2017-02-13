@@ -108,7 +108,6 @@ def read_in_all_images(address_list, shuffle=True, is_random_label = False):
     data = data.astype(np.float32)
     return data, label
 
-
 def whitening_image(image_np):
     '''
     Performs per_image_whitening

@@ -183,7 +183,7 @@ def train(target, all_data, all_labels, cluster_spec):
         worker_device='/job:worker/task:%d' % FLAGS.task_id,
         cluster=cluster_spec)):
 
-        global_step = tf.Variable(0, trainable=False)
+        global_step = tf.Variable(0, name="global_step", trainable=False)
 
         num_batches_per_epoch = (num_examples / FLAGS.batch_size)
         decay_steps = int(num_batches_per_epoch * FLAGS.num_epochs_per_decay / num_replicas_to_aggregate)

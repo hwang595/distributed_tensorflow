@@ -27,7 +27,7 @@ import time
 import sys
 import numpy as np
 import tensorflow as tf
-from distributed_train
+from distributed_train import *
 from resnet import *
 
 
