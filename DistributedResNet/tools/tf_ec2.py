@@ -29,7 +29,7 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 1,
+    "n_workers" : 2,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
     "num_replicas_to_aggregate" : "2",
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "128",
+    "batch_size" : "32",
     "max_steps" : "500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",

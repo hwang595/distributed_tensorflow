@@ -195,7 +195,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # Logits of training data and valiation data come from the same graph. The inference of
         # validation data share all the weights with train data. This is implemented by passing
         # reuse=True to the variable scopes of train graph
-        logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=False)
+        logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=True)
 #            vali_logits = inference(self.vali_image_placeholder, FLAGS.num_residual_blocks, reuse=True)
 
         # The following codes calculate the train loss, which is consist of the
@@ -232,7 +232,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # summarizing operations by running summary_op. Initialize a new session
         chief_queue_runners = [opt.get_chief_queue_runner()]
         init_tokens_op = opt.get_init_tokens_op()
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(tf.all_variables())
         summary_op = tf.summary.merge_all()
         init_op = tf.initialize_all_variables()
         test_print_op = logging_ops.Print(0, [0], message="Test print success")

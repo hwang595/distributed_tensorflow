@@ -66,7 +66,7 @@ def fill_feed_dict(eval_data, eval_labels, images_pl, labels_pl, batch_size):
   images_feed, labels_feed = generate_vali_batch(eval_data, eval_labels, batch_size)
   feed_dict = {
       images_pl: images_feed,
-      labels_pl: labels_feed,
+      labels_pl: labels_feed
   }
   return feed_dict
 
