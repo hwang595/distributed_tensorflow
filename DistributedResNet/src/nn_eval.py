@@ -149,8 +149,9 @@ def generate_vali_batch(vali_data, vali_label, vali_batch_size):
   :return: 4D numpy array and 1D numpy array
   '''
 #  offset = np.random.choice(10000 - vali_batch_size, 1)[0]
-  vali_data_batch = vali_data
-  vali_label_batch = vali_label
+  offset = np.random.choice(10001 - vali_batch_size, 1)[0]
+  vali_data_batch = vali_data[offset:offset+vali_batch_size, ...]
+  vali_label_batch = vali_label[offset:offset+vali_batch_size]
   return vali_data_batch, vali_label_batch
 
 def loss(logits, labels):

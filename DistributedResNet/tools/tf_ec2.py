@@ -41,15 +41,15 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.large",
-    "worker_type" : "t2.large",
-    "ps_type" : "t2.large",
-    "evaluator_type" : "t2.large",
+    "master_type" : "m4.2xlarge",
+    "worker_type" : "m4.2xlarge",
+    "ps_type" : "m4.2xlarge",
+    "evaluator_type" : "m4.2xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
     # Launch specifications
-    "spot_price" : "0.27",                 # Has to be a string
+    "spot_price" : "0.28",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
@@ -85,8 +85,8 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "859",
-    "max_steps" : "50",
+    "batch_size" : "128",
+    "max_steps" : "500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
     "num_epochs_per_decay" : "1.0",
