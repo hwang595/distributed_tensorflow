@@ -170,7 +170,7 @@ def train(target, all_data, all_labels, cluster_spec):
     if FLAGS.num_replicas_to_aggregate == -1:
         num_replicas_to_aggregate = num_workers
     else:
-        num_replicas_to_aggregate = FLAGS.num_replicas_to_aggregate\
+        num_replicas_to_aggregate = FLAGS.num_replicas_to_aggregate
 
     assert num_workers > 0 and num_parameter_servers > 0, (' num_workers and '
                                                      'num_parameter_servers'
@@ -255,8 +255,8 @@ def train(target, all_data, all_labels, cluster_spec):
                          save_model_secs=FLAGS.save_interval_secs)
         tf.logging.info('%s Supervisor' % datetime.now())
         sess_config = tf.ConfigProto(
-        allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)
+            allow_soft_placement=True,
+            log_device_placement=FLAGS.log_device_placement)
         sess = sv.prepare_or_wait_for_session(target, config=sess_config)
         queue_runners = tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS)
         sv.start_queue_runners(sess, queue_runners)
