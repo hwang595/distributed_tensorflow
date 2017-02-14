@@ -32,9 +32,9 @@ cfg = Cfg({
     "n_workers" : 2,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "2",
+    "num_replicas_to_aggregate" : "3",
 
-    "method" : "reserved",
+    "method" : "spot",
 
     # Region speficiation
     "region" : "us-west-2",
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "32",
+    "batch_size" : "64",
     "max_steps" : "500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
