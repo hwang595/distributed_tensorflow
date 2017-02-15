@@ -329,10 +329,10 @@ def train(target, all_data, all_labels, cluster_spec):
                     next_summary_time += FLAGS.save_summaries_secs
             except tf.errors.DeadlineExceededError:
                 tf.logging.info("Killed at time %f" % time.time())
-                sess.reset_kill()
+                #sess.reset_kill()
             except:
                 tf.logging.info("Unexpected error: %s" % str(sys.exc_info()[0]))
-                sess.reset_kill()
+                #sess.reset_kill()
         if is_chief:
             tf.logging.info('Elapsed Time: %f' % (time.time()-begin_time))
         sv.stop()
