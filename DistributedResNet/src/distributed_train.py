@@ -195,7 +195,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # Logits of training data and valiation data come from the same graph. The inference of
         # validation data share all the weights with train data. This is implemented by passing
         # reuse=True to the variable scopes of train graph
-        logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=True)
+        logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=False)
 #            vali_logits = inference(self.vali_image_placeholder, FLAGS.num_residual_blocks, reuse=True)
 
         # The following codes calculate the train loss, which is consist of the
