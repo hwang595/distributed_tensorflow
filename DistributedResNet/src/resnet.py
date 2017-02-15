@@ -38,7 +38,7 @@ def create_variables(name, shape, initializer=tf.contrib.layers.xavier_initializ
 
 #    new_variables = tf.get_variable(name, shape=shape, initializer=initializer,
 #                                    regularizer=regularizer)
-    new_variables = tf.get_variable(name, shape=shape, initializer=initializer,
+    new_variables = tf.Variable(name, shape=shape, initializer=initializer,
                                     regularizer=regularizer)
     return new_variables
 
