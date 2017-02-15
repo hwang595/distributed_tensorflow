@@ -278,60 +278,60 @@ def train(target, all_data, all_labels, cluster_spec):
             opt.start_interval_updates(sess, timeout_client)        
 
         while not sv.should_stop():
-            try:
-                sys.stdout.flush()
-                tf.logging.info("A new iteration...")
-                cur_iteration += 1
+        #    try:
+            sys.stdout.flush()
+            tf.logging.info("A new iteration...")
+            cur_iteration += 1
 
-                if FLAGS.worker_times_cdf_method:
-                    sess.run([opt._wait_op])
-                    timeout_client.broadcast_worker_dequeued_token(cur_iteration)
-                start_time = time.time()
-                feed_dict = fill_feed_dict(
-                    all_data, all_labels, image_placeholder, label_placeholder, FLAGS.batch_size)
+            if FLAGS.worker_times_cdf_method:
+                sess.run([opt._wait_op])
+                timeout_client.broadcast_worker_dequeued_token(cur_iteration)
+            start_time = time.time()
+            feed_dict = fill_feed_dict(
+                all_data, all_labels, image_placeholder, label_placeholder, FLAGS.batch_size)
 
-                run_options = tf.RunOptions()
-                run_metadata = tf.RunMetadata()
+            run_options = tf.RunOptions()
+            run_metadata = tf.RunMetadata()
 
-                if FLAGS.timeline_logging:
-                    run_options.trace_level=tf.RunOptions.FULL_TRACE
-                    run_options.output_partition_graphs=True
+            if FLAGS.timeline_logging:
+                run_options.trace_level=tf.RunOptions.FULL_TRACE
+                run_options.output_partition_graphs=True
 
-                tf.logging.info("RUNNING SESSION... %f" % time.time())
-                loss_value, step = sess.run(
-                    [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
-                tf.logging.info("DONE RUNNING SESSION...")
+            tf.logging.info("RUNNING SESSION... %f" % time.time())
+            loss_value, step = sess.run(
+                [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
+            tf.logging.info("DONE RUNNING SESSION...")
 
-                if FLAGS.worker_times_cdf_method:
-                    timeout_client.broadcast_worker_finished_computing_gradients(cur_iteration)
-                assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
-                finish_time = time.time()
-                if FLAGS.timeline_logging:
-                    tl = timeline.Timeline(run_metadata.step_stats)
-                    ctf = tl.generate_chrome_trace_format()
-                    with open('%s/worker=%d_timeline_iter=%d.json' % (FLAGS.train_dir, FLAGS.task_id, step), 'w'):
-                        f.write(ctf)
-                if step > FLAGS.max_steps:
-                    break
+            if FLAGS.worker_times_cdf_method:
+                timeout_client.broadcast_worker_finished_computing_gradients(cur_iteration)
+            assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
+            finish_time = time.time()
+            if FLAGS.timeline_logging:
+                tl = timeline.Timeline(run_metadata.step_stats)
+                ctf = tl.generate_chrome_trace_format()
+                with open('%s/worker=%d_timeline_iter=%d.json' % (FLAGS.train_dir, FLAGS.task_id, step), 'w'):
+                    f.write(ctf)
+            if step > FLAGS.max_steps:
+                break
 
-                duration = time.time() - start_time
-                examples_per_sec = FLAGS.batch_size / float(duration)
-                format_str = ('Worker %d: %s: step %d, loss = %f'
-                                '(%.1f examples/sec; %.3f  sec/batch)')
-                tf.logging.info(format_str %
-                            (FLAGS.task_id, datetime.now(), step, loss_value,
-                                examples_per_sec, duration))
-                if is_chief and next_summary_time < time.time() and FLAGS.should_summarize:
-                    tf.logging.info('Running Summary operation on the chief.')
-                    summary_str = sess.run(summary_op)
-                    sv.summary_computed(sess, summary_str)
-                    tf.logging.info('Finished running Summary operation.')
-                    next_summary_time += FLAGS.save_summaries_secs
-            except tf.errors.DeadlineExceededError:
-                tf.logging.info("Killed at time %f" % time.time())
+            duration = time.time() - start_time
+            examples_per_sec = FLAGS.batch_size / float(duration)
+            format_str = ('Worker %d: %s: step %d, loss = %f'
+                            '(%.1f examples/sec; %.3f  sec/batch)')
+            tf.logging.info(format_str %
+                        (FLAGS.task_id, datetime.now(), step, loss_value,
+                            examples_per_sec, duration))
+            if is_chief and next_summary_time < time.time() and FLAGS.should_summarize:
+                tf.logging.info('Running Summary operation on the chief.')
+                summary_str = sess.run(summary_op)
+                sv.summary_computed(sess, summary_str)
+                tf.logging.info('Finished running Summary operation.')
+                next_summary_time += FLAGS.save_summaries_secs
+        #    except tf.errors.DeadlineExceededError:
+        #        tf.logging.info("Killed at time %f" % time.time())
                 #sess.reset_kill()
-            except:
-                tf.logging.info("Unexpected error: %s" % str(sys.exc_info()[0]))
+        #    except:
+        #        tf.logging.info("Unexpected error: %s" % str(sys.exc_info()[0]))
                 #sess.reset_kill()
         if is_chief:
             tf.logging.info('Elapsed Time: %f' % (time.time()-begin_time))
