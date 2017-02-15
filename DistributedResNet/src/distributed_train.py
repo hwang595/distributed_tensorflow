@@ -150,7 +150,7 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size):
     batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
 
     batch_data = whitening_image(batch_data)
-    batch_label = train_labels[offset:offset+FLAGS.train_batch_size]
+    batch_label = train_labels[offset:offset+train_batch_size]
 
     return batch_data, batch_label
 
