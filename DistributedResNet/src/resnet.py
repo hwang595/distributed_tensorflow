@@ -16,8 +16,8 @@ def activation_summary(x):
     :return: Add histogram summary and scalar summary of the sparsity of the tensor
     '''
     tensor_name = x.op.name
-    tf.histogram_summary(tensor_name + '/activations', x)
-    tf.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+    tf.summary.histogram(tensor_name + '/activations', x)
+    tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
 
 
 def create_variables(name, shape, initializer=tf.contrib.layers.xavier_initializer(), is_fc_layer=False):
@@ -206,15 +206,12 @@ def inference(input_tensor_batch, n, reuse):
 
     return layers[-1]
 
-
+'''
 def test_graph(train_dir='logs'):
-    '''
-    Run this function to look at the graph structure on tensorboard. A fast way!
-    :param train_dir:
-    '''
     input_tensor = tf.constant(np.ones([128, 32, 32, 3]), dtype=tf.float32)
     result = inference(input_tensor, 2, reuse=False)
     init = tf.initialize_all_variables()
     sess = tf.Session()
     sess.run(init)
     summary_writer = tf.train.SummaryWriter(train_dir, sess.graph)
+'''

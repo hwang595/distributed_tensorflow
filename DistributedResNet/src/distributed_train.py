@@ -160,9 +160,9 @@ def train(target, all_data, all_labels, cluster_spec):
     This is the main function for training
     '''
     image_placeholder = tf.placeholder(dtype=tf.float32,
-                                            shape=[FLAGS.train_batch_size, IMG_HEIGHT,
+                                            shape=[FLAGS.batch_size, IMG_HEIGHT,
                                                     IMG_WIDTH, IMG_DEPTH])
-    label_placeholder = tf.placeholder(dtype=tf.int32, shape=[FLAGS.train_batch_size])
+    label_placeholder = tf.placeholder(dtype=tf.int32, shape=[FLAGS.batch_size])
 
     num_workers = len(cluster_spec.as_dict()['worker'])
     num_parameter_servers = len(cluster_spec.as_dict()['ps'])
