@@ -71,10 +71,24 @@ def batch_normalization_layer(input_layer, dimension):
     :return: the 4D tensor after being normalized
     '''
     mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
-    beta = tf.Variable('beta', dimension, tf.float32,
-                               initializer=tf.constant_initializer(0.0, tf.float32))
-    gamma = tf.Varibale('gamma', dimension, tf.float32,
-                                initializer=tf.constant_initializer(1.0, tf.float32))
+#    beta = tf.Variable('beta', dimension, tf.float32,
+#                               initializer=tf.constant_initializer(0.0, tf.float32))
+#    gamma = tf.Varibale('gamma', dimension, tf.float32,
+#                                initializer=tf.constant_initializer(1.0, tf.float32))
+    beta = tf.Variable(
+        tf.truncated_normal(
+                          dimension,
+                          stddev=0.1,
+                          seed=SEED,
+                          dtype=tf.float32)
+    , name='beta')
+    gamma = tf.Variable(
+        tf.truncated_normal(
+                          dimension,
+                          stddev=0.1,
+                          seed=SEED,
+                          dtype=tf.float32)
+    , name='gamma')
     bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
 
     return bn_layer
