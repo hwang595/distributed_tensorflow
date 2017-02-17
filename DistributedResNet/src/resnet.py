@@ -75,8 +75,6 @@ def batch_normalization_layer(input_layer, dimension):
 #                               initializer=tf.constant_initializer(0.0, tf.float32))
 #    gamma = tf.Varibale('gamma', dimension, tf.float32,
 #                                initializer=tf.constant_initializer(1.0, tf.float32))
-    print(dimension)
-    exit()
     beta = tf.Variable(
         tf.constant(0.0, shape=[dimension], dtype=tf.float32), name='beta')
 
