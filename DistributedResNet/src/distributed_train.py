@@ -180,8 +180,8 @@ def train(target, all_data, all_labels, cluster_spec):
 
     with tf.device(
         tf.train.replica_device_setter(
-        worker_device='/job:worker/task:%d' % FLAGS.task_id,
-        cluster=cluster_spec)):
+            worker_device='/job:worker/task:%d' % FLAGS.task_id,
+            cluster=cluster_spec)):
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
 
@@ -232,7 +232,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # summarizing operations by running summary_op. Initialize a new session
         chief_queue_runners = [opt.get_chief_queue_runner()]
         init_tokens_op = opt.get_init_tokens_op()
-        saver = tf.train.Saver(tf.global_variables())
+        saver = tf.train.Saver()
         summary_op = tf.summary.merge_all()
         init_op = tf.global_variables_initializer()
         test_print_op = logging_ops.Print(0, [0], message="Test print success")
@@ -245,14 +245,14 @@ def train(target, all_data, all_labels, cluster_spec):
         ready_for_local_init_op = opt.ready_for_local_init_op
 
         sv = tf.train.Supervisor(is_chief=is_chief,
-                         local_init_op=local_init_op,
-                         ready_for_local_init_op=ready_for_local_init_op,
-                         logdir=FLAGS.train_dir,
-                         init_op=init_op,
-                         summary_op=None,
-                         global_step=global_step,
-                         saver=saver,
-                         save_model_secs=FLAGS.save_interval_secs)
+                                 local_init_op=local_init_op,
+                                 ready_for_local_init_op=ready_for_local_init_op,
+                                 logdir=FLAGS.train_dir,
+                                 init_op=init_op,
+                                 summary_op=None,
+                                 global_step=global_step,
+                                 saver=saver,
+                                 save_model_secs=FLAGS.save_interval_secs)
         tf.logging.info('%s Supervisor' % datetime.now())
         sess_config = tf.ConfigProto(
             allow_soft_placement=True,
