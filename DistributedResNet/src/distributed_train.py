@@ -232,9 +232,9 @@ def train(target, all_data, all_labels, cluster_spec):
         # summarizing operations by running summary_op. Initialize a new session
         chief_queue_runners = [opt.get_chief_queue_runner()]
         init_tokens_op = opt.get_init_tokens_op()
-        saver = tf.train.Saver(tf.all_variables())
+        saver = tf.train.Saver(tf.global_variables())
         summary_op = tf.summary.merge_all()
-        init_op = tf.initialize_all_variables()
+        init_op = tf.global_variables_initializer()
         test_print_op = logging_ops.Print(0, [0], message="Test print success")
         if is_chief:
             local_init_op = opt.chief_init_op
