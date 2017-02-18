@@ -194,7 +194,7 @@ def train(target, dataset, cluster_spec):
     summary_op = tf.summary.merge_all()
 
     # Build an initialization operation to run below.
-    init_op = tf.initialize_all_variables()
+    init_op = tf.global_variables_initializer()
 
     test_print_op = logging_ops.Print(0, [0], message="Test print success")
 
