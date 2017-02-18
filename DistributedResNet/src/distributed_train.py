@@ -188,10 +188,10 @@ def train(target, all_data, all_labels, cluster_spec):
         num_batches_per_epoch = (num_examples / FLAGS.batch_size)
         decay_steps = int(num_batches_per_epoch * FLAGS.num_epochs_per_decay / num_replicas_to_aggregate)
         lr = tf.train.exponential_decay(FLAGS.initial_learning_rate,
-                                global_step,
-                                decay_steps,
-                                FLAGS.learning_rate_decay_factor,
-                                staircase=True)
+                                        global_step,
+                                        decay_steps,
+                                        FLAGS.learning_rate_decay_factor,
+                                        staircase=True)
         # Logits of training data and valiation data come from the same graph. The inference of
         # validation data share all the weights with train data. This is implemented by passing
         # reuse=True to the variable scopes of train graph
@@ -203,8 +203,8 @@ def train(target, all_data, all_labels, cluster_spec):
 #            regu_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         total_loss = calc_loss(logits, label_placeholder)
 
-        predictions = tf.nn.softmax(logits)
-        train_top1_error = top_k_error(predictions, label_placeholder, 1)
+#        predictions = tf.nn.softmax(logits)
+#        train_top1_error = top_k_error(predictions, label_placeholder, 1)
 
         opt = tf.train.AdamOptimizer(lr)
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:

@@ -7,8 +7,8 @@ This is the resnet structure
 import numpy as np
 from hyper_parameters import *
 
-
 BN_EPSILON = 0.001
+SEED = 66478
 
 def activation_summary(x):
     '''
@@ -36,8 +36,15 @@ def create_variables(name, shape, initializer=tf.contrib.layers.xavier_initializ
     else:
         regularizer = tf.contrib.layers.l2_regularizer(scale=FLAGS.weight_decay)
 
-    new_variables = tf.get_variable(name, shape=shape, initializer=initializer,
-                                    regularizer=regularizer)
+#    new_variables = tf.get_variable(name, shape=shape, initializer=initializer,
+#                                    regularizer=regularizer)
+    new_variables = tf.Variable(
+        tf.truncated_normal(
+                          shape,
+                          stddev=0.1,
+                          seed=SEED,
+                          dtype=tf.float32)
+        , name=name)
     return new_variables
 
 
@@ -64,10 +71,15 @@ def batch_normalization_layer(input_layer, dimension):
     :return: the 4D tensor after being normalized
     '''
     mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
-    beta = tf.get_variable('beta', dimension, tf.float32,
-                               initializer=tf.constant_initializer(0.0, tf.float32))
-    gamma = tf.get_variable('gamma', dimension, tf.float32,
-                                initializer=tf.constant_initializer(1.0, tf.float32))
+#    beta = tf.Variable('beta', dimension, tf.float32,
+#                               initializer=tf.constant_initializer(0.0, tf.float32))
+#    gamma = tf.Varibale('gamma', dimension, tf.float32,
+#                                initializer=tf.constant_initializer(1.0, tf.float32))
+    beta = tf.Variable(
+        tf.constant(0.0, shape=[dimension], dtype=tf.float32), name='beta')
+
+    gamma = tf.Variable(
+        tf.constant(1.0, shape=[dimension], dtype=tf.float32), name='gamma')
     bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
 
     return bn_layer
