@@ -43,8 +43,7 @@ def create_variables(name, shape, initializer=tf.contrib.layers.xavier_initializ
                           shape,
                           stddev=0.1,
                           seed=SEED,
-                          dtype=tf.float32)
-        , name=name)
+                          dtype=tf.float32))
     return new_variables
 
 
@@ -76,10 +75,10 @@ def batch_normalization_layer(input_layer, dimension):
 #    gamma = tf.Varibale('gamma', dimension, tf.float32,
 #                                initializer=tf.constant_initializer(1.0, tf.float32))
     beta = tf.Variable(
-        tf.constant(0.0, shape=[dimension], dtype=tf.float32), name='beta')
+        tf.constant(0.0, shape=[dimension], dtype=tf.float32))
 
     gamma = tf.Variable(
-        tf.constant(1.0, shape=[dimension], dtype=tf.float32), name='gamma')
+        tf.constant(1.0, shape=[dimension], dtype=tf.float32))
     bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
 
     return bn_layer
