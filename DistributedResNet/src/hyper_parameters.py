@@ -44,6 +44,3 @@ training''')
 
 tf.app.flags.DEFINE_string('test_ckpt_path', 'model_110.ckpt-79999', '''Checkpoint
 directory to restore''')
-
-
-train_dir = 'logs_' + FLAGS.version + '/'
