@@ -46,7 +46,7 @@ cfg = Cfg({
     "ps_type" : "m3.medium",
     "evaluator_type" : "m3.medium",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-73b23613",
+    "image_id": "ami-fbb8399b",
 
     # Launch specifications
     "spot_price" : "0.03",                 # Has to be a string
