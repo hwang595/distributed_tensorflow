@@ -38,18 +38,18 @@ cfg = Cfg({
 
     # Region speficiation
     "region" : "us-west-2",
-    "availability_zone" : "us-west-2b",
+    "availability_zone" : "us-west-2a",
 
     # Machine type - instance type configuration.
-    "master_type" : "m3.medium",
-    "worker_type" : "m3.medium",
-    "ps_type" : "m3.medium",
-    "evaluator_type" : "m3.medium",
+    "master_type" : "g2.2xlarge",
+    "worker_type" : "g2.2xlarge",
+    "ps_type" : "g2.2xlarge",
+    "evaluator_type" : "g2.2xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-fbb8399b",
 
     # Launch specifications
-    "spot_price" : "0.03",                 # Has to be a string
+    "spot_price" : "0.195",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
@@ -73,20 +73,20 @@ cfg = Cfg({
     # Master pre commands are run only by the master
     "master_pre_commands" :
     [
-        "cd distributed_net_workspace/DistributedLeNet",
+        "cd distributed_tensorflow/DistributedLeNet",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Pre commands are run on every machine before the actual training.
     "pre_commands" :
     [
-        "cd distributed_net_workspace/DistributedLeNet",
+        "cd distributed_tensorflow/DistributedLeNet",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Model configuration
     "batch_size" : "128",
-    "max_steps" : "5000",
+    "max_steps" : "2000",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
     "num_epochs_per_decay" : "1.0",
