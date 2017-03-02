@@ -41,10 +41,10 @@ cfg = Cfg({
     "availability_zone" : "us-west-2a",
 
     # Machine type - instance type configuration.
-    "master_type" : "g2.2xlarge",
-    "worker_type" : "g2.2xlarge",
-    "ps_type" : "g2.2xlarge",
-    "evaluator_type" : "g2.2xlarge",
+    "master_type" : "t2.large",
+    "worker_type" : "t2.large",
+    "ps_type" : "t2.large",
+    "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-fbb8399b",
 
@@ -73,19 +73,19 @@ cfg = Cfg({
     # Master pre commands are run only by the master
     "master_pre_commands" :
     [
-        "cd distributed_tensorflow/DistributedLeNet",
+        "cd distributed_tensorflow/Distributed_test",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Pre commands are run on every machine before the actual training.
     "pre_commands" :
     [
-        "cd distributed_tensorflow/DistributedLeNet",
+        "cd distributed_tensorflow/Distributed_test",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Model configuration
-    "batch_size" : "8192",
+    "batch_size" : "2048",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
