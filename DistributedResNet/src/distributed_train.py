@@ -281,7 +281,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
         b = np.ones(int(num_batches_per_epoch))
         interval = np.arange(0, int(num_batches_per_epoch))
-        idx_list = np.random.choice(interval, int(num_worker), replace=False)     
+        idx_list = np.random.choice(interval, int(num_workers), replace=False)     
 
         while not sv.should_stop():
         #    try:
