@@ -213,8 +213,8 @@ def train(target, all_data, all_labels, cluster_spec):
                 global_step,
                 total_num_replicas=num_workers)
         else:
-#            opt = tf.train.SyncReplicasOptimizerV2(
-            opt = tf.train.SyncReplicasOptimizer(
+            opt = tf.train.SyncReplicasOptimizerV2(
+#            opt = tf.train.SyncReplicasOptimizer(
                 opt,
                 replicas_to_aggregate=num_replicas_to_aggregate,
                 total_num_replicas=num_workers)
@@ -276,7 +276,11 @@ def train(target, all_data, all_labels, cluster_spec):
         iterations_finished = set()
 
         if FLAGS.task_id == 0 and FLAGS.interval_method:
-            opt.start_interval_updates(sess, timeout_client)        
+            opt.start_interval_updates(sess, timeout_client)   
+
+        b = np.ones(num_batches_per_epoch)
+        interval = np.arange(0, num_batches_per_epoch)
+        idx_list = np.random.choice(interval, num_worker, replace=False)     
 
         while not sv.should_stop():
         #    try:
@@ -297,7 +301,41 @@ def train(target, all_data, all_labels, cluster_spec):
             if FLAGS.timeline_logging:
                 run_options.trace_level=tf.RunOptions.FULL_TRACE
                 run_options.output_partition_graphs=True
+            #===============================================================================================    
+            if FLAGS.task_id == 0:
+                interval_2 = np.arange(0, num_worker)
+                workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
+                #interval_2 = np.arange(0, WORKER_NUM)
+                #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
+                A = np.zeros((num_worker, num_batches_per_epoch))
+                for i in range(A.shape[0]):
+                  if i == A.shape[0]-1:
+                    A[i][idx_list[i]] = 1
+                    A[i][idx_list[0]] = 1
+                  else:
+                    A[i][idx_list[i]] = 1
+                    A[i][idx_list[i+1]] = 1
 
+                for i in range(len(idx_list)):
+                  element = idx_list[i]
+                  if element == A.shape[1]-1:
+                    idx_list[i] = 0
+                  else:
+                    idx_list[i] += 1
+
+                for k in workers_to_kill:
+                  A[k] = 0
+
+                A_for_calc = np.transpose(A)
+                x = np.dot(np.linalg.pinv(A_for_calc), b)
+                tf.logging.info("workers killed this iteration:")
+                tf.logging.info(str(workers_to_kill))
+                tf.logging.info("The matrix to solve:")
+                for item in A_for_calc:
+                  tf.logging.info(str(item))
+                tf.logging.info("Solution of LS:")
+                tf.logging.info(str(x))            
+            #=============================================================================================== 
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
                 [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
