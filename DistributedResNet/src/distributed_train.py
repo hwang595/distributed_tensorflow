@@ -60,6 +60,7 @@ tf.app.flags.DEFINE_integer('rpc_port', 1235,
 
 tf.app.flags.DEFINE_integer('max_steps', 1000000, 'Number of batches to run.')
 tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size.')
+tf.app.flags.DEFINE_integer('num_worker_kill', 3, 'Number of workers to kill.')
 tf.app.flags.DEFINE_string('subset', 'train', 'Either "train" or "validation".')
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             'Whether to log device placement.')
@@ -303,11 +304,11 @@ def train(target, all_data, all_labels, cluster_spec):
                 run_options.output_partition_graphs=True
             #===============================================================================================    
             if FLAGS.task_id == 0:
-                interval_2 = np.arange(0, int(num_worker))
+                interval_2 = np.arange(0, int(num_workers))
                 workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
                 #interval_2 = np.arange(0, WORKER_NUM)
                 #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
-                A = np.zeros((int(num_worker), int(num_batches_per_epoch)))
+                A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
                 for i in range(A.shape[0]):
                   if i == A.shape[0]-1:
                     A[i][idx_list[i]] = 1
