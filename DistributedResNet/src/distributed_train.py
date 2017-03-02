@@ -278,9 +278,9 @@ def train(target, all_data, all_labels, cluster_spec):
         if FLAGS.task_id == 0 and FLAGS.interval_method:
             opt.start_interval_updates(sess, timeout_client)   
 
-        b = np.ones(num_batches_per_epoch)
-        interval = np.arange(0, num_batches_per_epoch)
-        idx_list = np.random.choice(interval, num_worker, replace=False)     
+        b = np.ones(int(num_batches_per_epoch))
+        interval = np.arange(0, int(num_batches_per_epoch))
+        idx_list = np.random.choice(interval, int(num_worker), replace=False)     
 
         while not sv.should_stop():
         #    try:
@@ -303,11 +303,11 @@ def train(target, all_data, all_labels, cluster_spec):
                 run_options.output_partition_graphs=True
             #===============================================================================================    
             if FLAGS.task_id == 0:
-                interval_2 = np.arange(0, num_worker)
+                interval_2 = np.arange(0, int(num_worker))
                 workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
                 #interval_2 = np.arange(0, WORKER_NUM)
                 #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
-                A = np.zeros((num_worker, num_batches_per_epoch))
+                A = np.zeros((int(num_worker), int(num_batches_per_epoch)))
                 for i in range(A.shape[0]):
                   if i == A.shape[0]-1:
                     A[i][idx_list[i]] = 1
