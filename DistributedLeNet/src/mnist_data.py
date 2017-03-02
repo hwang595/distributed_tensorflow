@@ -38,6 +38,8 @@ from scipy.ndimage.filters import gaussian_filter
 
 SOURCE_URL = 'http://yann.lecun.com/exdb/mnist/'
 
+SEED = 448
+
 class DataSet(object):
 
   def __init__(self,
@@ -52,7 +54,8 @@ class DataSet(object):
     `uint8` to leave the input as `[0, 255]`, or `float32` to rescale into
     `[0, 1]`.
     """
-    numpy.random.seed(int(time.time()))
+#    numpy.random.seed(int(time.time()))
+    numpy.random.seed(SEED)
     dtype = dtypes.as_dtype(dtype).base_dtype
     if dtype not in (dtypes.uint8, dtypes.float32):
       raise TypeError('Invalid image dtype %r, expected uint8 or float32' %
@@ -117,6 +120,7 @@ class DataSet(object):
       self._epochs_completed += 1
       # Shuffle the data
       perm = numpy.arange(self._num_examples)
+      numpy.random.seed(SEED)
       numpy.random.shuffle(perm)
       self._images = self._images[perm]
       self._labels = self._labels[perm]

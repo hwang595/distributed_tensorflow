@@ -123,7 +123,7 @@ def train(target, dataset, cluster_spec):
   # Ops are assigned to worker by default.
   with tf.device(
       tf.train.replica_device_setter(
-        worker_device='/job:worker/task:%d/gpu:0' % FLAGS.task_id,
+        worker_device='/job:worker/task:%d' % FLAGS.task_id,
         cluster=cluster_spec)):
 
     # Create a variable to count the number of train() calls. This equals the
@@ -165,8 +165,8 @@ def train(target, dataset, cluster_spec):
         global_step,
         total_num_replicas=num_workers)
     else:
-#      opt = tf.train.SyncReplicasOptimizerV2(
-      opt = tf.train.SyncReplicasOptimizer(
+      opt = tf.train.SyncReplicasOptimizerV2(
+#      opt = tf.train.SyncReplicasOptimizer(
         opt,
         replicas_to_aggregate=num_replicas_to_aggregate,
         total_num_replicas=num_workers)

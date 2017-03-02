@@ -29,27 +29,27 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 1,
+    "n_workers" : 8,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "2",
+    "num_replicas_to_aggregate" : "9",
 
-    "method" : "spot",
+    "method" : "reserved",
 
     # Region speficiation
     "region" : "us-west-2",
     "availability_zone" : "us-west-2a",
 
     # Machine type - instance type configuration.
-    "master_type" : "g2.2xlarge",
-    "worker_type" : "g2.2xlarge",
-    "ps_type" : "g2.2xlarge",
-    "evaluator_type" : "g2.2xlarge",
+    "master_type" : "t2.large",
+    "worker_type" : "t2.large",
+    "ps_type" : "t2.large",
+    "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-fbb8399b",
+    "image_id": "ami-35901755",
 
     # Launch specifications
-    "spot_price" : "0.195",                 # Has to be a string
+    "spot_price" : "0.22",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
@@ -85,8 +85,8 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "128",
-    "max_steps" : "2000",
+    "batch_size" : "8192",
+    "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
     "num_epochs_per_decay" : "1.0",
