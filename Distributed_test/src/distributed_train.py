@@ -259,9 +259,9 @@ def train(target, dataset, cluster_spec):
       opt.start_interval_updates(sess, timeout_client)
 
     #the result of normal eqiation waited to be solved like min||Ax - b||^2
-    b = np.ones(num_batches_per_epoch)
-    interval = np.arange(0, num_batches_per_epoch)
-    idx_list = np.random.choice(interval, num_worker, replace=False)
+    b = np.ones(int(num_batches_per_epoch))
+    interval = np.arange(0, int(num_batches_per_epoch))
+    idx_list = np.random.choice(interval, int(num_workers), replace=False)  
     while not sv.should_stop():
       sys.stdout.flush()
       tf.logging.info("A new iteration...")
@@ -319,7 +319,7 @@ def train(target, dataset, cluster_spec):
         tf.logging.info(str(x)) 
         LS_duration = time.time() - LS_start_time
         tf.logging.info("LS run time: %s" % str(LS_duration))          
-    #===============================================================================================      
+      #===============================================================================================    
 
       if FLAGS.timeline_logging:
         run_options.trace_level=tf.RunOptions.FULL_TRACE
