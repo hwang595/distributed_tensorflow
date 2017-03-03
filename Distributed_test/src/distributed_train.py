@@ -281,7 +281,7 @@ def train(target, dataset, cluster_spec):
 
       run_options = tf.RunOptions()
       run_metadata = tf.RunMetadata()
-
+      '''
       #===============================================================================================    
       if FLAGS.task_id == 0:
         LS_start_time = time.time()
@@ -320,7 +320,7 @@ def train(target, dataset, cluster_spec):
         LS_duration = time.time() - LS_start_time
         tf.logging.info("LS run time: %s" % str(LS_duration))          
       #===============================================================================================    
-
+      '''
       if FLAGS.timeline_logging:
         run_options.trace_level=tf.RunOptions.FULL_TRACE
         run_options.output_partition_graphs=True
