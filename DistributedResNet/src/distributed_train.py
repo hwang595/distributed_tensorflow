@@ -197,6 +197,7 @@ def train(target, all_data, all_labels, cluster_spec):
         # validation data share all the weights with train data. This is implemented by passing
         # reuse=True to the variable scopes of train graph
         logits = inference(image_placeholder, FLAGS.num_residual_blocks, reuse=False)
+
 #            vali_logits = inference(self.vali_image_placeholder, FLAGS.num_residual_blocks, reuse=True)
 
         # The following codes calculate the train loss, which is consist of the
@@ -222,6 +223,22 @@ def train(target, all_data, all_labels, cluster_spec):
 
         # Compute gradients with respect to the loss.
         grads = opt.compute_gradients(total_loss)
+        #compute weighted gradients here.
+        #===============================================================================================
+        '''
+        weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
+                                                shape=(num_workers,))
+        grad_list = [x[0] for x in grads]
+        new_grad_list = []
+        for g_idx in range(len(grad_list)):
+            grad_on_worker = grad_list[g_idx]
+            weight = tf.slice(weight_vec_placeholder, [i], [1])
+            new_grad_list.append(tf.mul(grad_on_worker, weight))
+        for x_idx in range(len(grads)):
+            x = grads[x_idx]
+            x[0] = new_grad_list[x_idx]
+        '''
+        #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
             apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
         else:
@@ -301,6 +318,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
             #===============================================================================================    
             if FLAGS.task_id == 0:
+                LS_start_time = time.time()
                 interval_2 = np.arange(0, int(num_workers))
                 workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
                 #interval_2 = np.arange(0, WORKER_NUM)
@@ -332,7 +350,9 @@ def train(target, all_data, all_labels, cluster_spec):
                 for item in A_for_calc:
                   tf.logging.info(str(item))
                 tf.logging.info("Solution of LS:")
-                tf.logging.info(str(x))            
+                tf.logging.info(str(x)) 
+                LS_duration = time.time() - LS_start_time
+                tf.logging.info("LS run time: %s" % str(LS_duration))          
             #===============================================================================================             
 
             if FLAGS.timeline_logging:
@@ -341,6 +361,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
+                #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
                 [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
             tf.logging.info("DONE RUNNING SESSION...")
 
