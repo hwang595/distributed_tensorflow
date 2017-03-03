@@ -34,7 +34,7 @@ cfg = Cfg({
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
     "num_replicas_to_aggregate" : "9",
 
-    "method" : "spot",
+    "method" : "reserved",
 
     # Region speficiation
     "region" : "us-west-2",
@@ -49,7 +49,7 @@ cfg = Cfg({
     "image_id": "ami-fbb8399b",
 
     # Launch specifications
-    "spot_price" : "0.31",                 # Has to be a string
+    "spot_price" : "0.34",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
