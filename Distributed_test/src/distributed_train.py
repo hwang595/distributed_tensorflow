@@ -312,9 +312,9 @@ def train(target, dataset, cluster_spec):
         x = np.dot(np.linalg.pinv(A_for_calc), b)
         tf.logging.info("workers killed this iteration:")
         tf.logging.info(str(workers_to_kill))
-        tf.logging.info("The matrix to solve:")
-        for item in A_for_calc:
-          tf.logging.info(str(item))
+      #  tf.logging.info("The matrix to solve:")
+      #  for item in A_for_calc:
+      #    tf.logging.info(str(item))
         tf.logging.info("Solution of LS:")
         tf.logging.info(str(x)) 
         LS_duration = time.time() - LS_start_time
