@@ -38,7 +38,7 @@ cfg = Cfg({
 
     # Region speficiation
     "region" : "us-west-2",
-    "availability_zone" : "us-west-2a",
+    "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
     "master_type" : "t2.large",
@@ -46,7 +46,7 @@ cfg = Cfg({
     "ps_type" : "t2.large",
     "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-fbb8399b",
+    "image_id": "ami-35901755",
 
     # Launch specifications
     "spot_price" : "0.22",                 # Has to be a string
@@ -72,20 +72,24 @@ cfg = Cfg({
     # Command specification
     # Master pre commands are run only by the master
     "master_pre_commands" :
-    [
-        "cd distributed_tensorflow/Distributed_test",
+    [   
+        "cd distributed_tensorflow/",
+        "git pull",
+        "cd Distributed_test/",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Pre commands are run on every machine before the actual training.
     "pre_commands" :
     [
-        "cd distributed_tensorflow/Distributed_test",
+        "cd distributed_tensorflow/",
+        "git pull",
+        "cd Distributed_test/",
         "git fetch && git reset --hard origin/master",
     ],
 
     # Model configuration
-    "batch_size" : "2048",
+    "batch_size" : "1024",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",

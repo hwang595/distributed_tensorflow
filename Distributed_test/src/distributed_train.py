@@ -166,8 +166,8 @@ def train(target, dataset, cluster_spec):
         global_step,
         total_num_replicas=num_workers)
     else:
-#      opt = tf.train.SyncReplicasOptimizerV2(
-      opt = tf.train.SyncReplicasOptimizer(
+      opt = tf.train.SyncReplicasOptimizerV2(
+#      opt = tf.train.SyncReplicasOptimizer(
         opt,
         replicas_to_aggregate=num_replicas_to_aggregate,
         total_num_replicas=num_workers)
@@ -265,16 +265,31 @@ def train(target, dataset, cluster_spec):
     while not sv.should_stop():
       sys.stdout.flush()
       tf.logging.info("A new iteration...")
-      #implement several interesting task here
-      #if not necessary, please delete them
-      #=============================================================================================
-      #implement this calculation on master
+     
+      cur_iteration += 1
+
+      #sess.run([opt._wait_op], options=tf.RunOptions(timeout_in_ms=10000))
+      #sess.run([opt._wait_op])
+      #sess.run([test_print_op])
+
+      if FLAGS.worker_times_cdf_method:
+        sess.run([opt._wait_op])
+        timeout_client.broadcast_worker_dequeued_token(cur_iteration)
+
+      start_time = time.time()
+      feed_dict = mnist.fill_feed_dict(dataset, images, labels, FLAGS.batch_size)
+
+      run_options = tf.RunOptions()
+      run_metadata = tf.RunMetadata()
+
+      #===============================================================================================    
       if FLAGS.task_id == 0:
-        interval_2 = np.arange(0, num_worker)
+        LS_start_time = time.time()
+        interval_2 = np.arange(0, int(num_workers))
         workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
         #interval_2 = np.arange(0, WORKER_NUM)
         #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
-        A = np.zeros((num_worker, num_batches_per_epoch))
+        A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
         for i in range(A.shape[0]):
           if i == A.shape[0]-1:
             A[i][idx_list[i]] = 1
@@ -301,24 +316,10 @@ def train(target, dataset, cluster_spec):
         for item in A_for_calc:
           tf.logging.info(str(item))
         tf.logging.info("Solution of LS:")
-        tf.logging.info(str(x))
-      #=============================================================================================
-      # Increment current iteration
-      cur_iteration += 1
-
-      #sess.run([opt._wait_op], options=tf.RunOptions(timeout_in_ms=10000))
-      #sess.run([opt._wait_op])
-      #sess.run([test_print_op])
-
-      if FLAGS.worker_times_cdf_method:
-        sess.run([opt._wait_op])
-        timeout_client.broadcast_worker_dequeued_token(cur_iteration)
-
-      start_time = time.time()
-      feed_dict = mnist.fill_feed_dict(dataset, images, labels, FLAGS.batch_size)
-
-      run_options = tf.RunOptions()
-      run_metadata = tf.RunMetadata()
+        tf.logging.info(str(x)) 
+        LS_duration = time.time() - LS_start_time
+        tf.logging.info("LS run time: %s" % str(LS_duration))          
+    #===============================================================================================      
 
       if FLAGS.timeline_logging:
         run_options.trace_level=tf.RunOptions.FULL_TRACE
@@ -328,6 +329,8 @@ def train(target, dataset, cluster_spec):
       #tf.logging.info("SETTING TIMEOUT FOR %d ms" % timeout_ms)
       #run_options.timeout_in_ms = 1000 * 60 * 1
 
+      # Increment current iteration
+      
       tf.logging.info("RUNNING SESSION... %f" % time.time())
       loss_value, step = sess.run([train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
       tf.logging.info("DONE RUNNING SESSION...")
