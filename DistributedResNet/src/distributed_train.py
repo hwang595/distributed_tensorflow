@@ -234,16 +234,18 @@ def train(target, all_data, all_labels, cluster_spec):
             grad_on_worker = grad_list[g_idx]
             weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
             new_grad_list.append(tf.mul(grad_on_worker, weight))
+        grad_new = []
         for x_idx in range(len(grads)):
-            x = grads[x_idx]
-            x[0] = new_grad_list[x_idx]
+            grad_elem = grads[x_idx]
+            grad_new.append((grad_elem[0], new_grad_list[x_idx]))
 
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+#            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+            apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
         else:
-            apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
-
+#            apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
+            apply_gradients_op = opt.apply_gradients(grad_new, global_step=global_step)
         with tf.control_dependencies([apply_gradients_op]):
             train_op = tf.identity(total_loss, name='train_op')            
 
