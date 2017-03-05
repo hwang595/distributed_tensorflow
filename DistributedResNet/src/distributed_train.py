@@ -232,21 +232,14 @@ def train(target, all_data, all_labels, cluster_spec):
         new_grad_list = []
         for g_idx in range(len(grad_list)):
             grad_on_worker = grad_list[g_idx]
-            weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
+        #    weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
         #    new_grad_list.append(tf.mul(grad_on_worker, weight))
-            new_grad_list.append(tf.scalar_mul(weight[0], grad_on_worker))
-        print("Here")
-        for item in grads:
-            print(item)
-        print("==============================================================")
+            weight = float(g_idx)
+            new_grad_list.append(tf.scalar_mul(weight, grad_on_worker))
         grad_new = []
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
             grad_new.append((new_grad_list[x_idx], grad_elem[1]))
-        print("There")
-        for item in grad_new:
-            print(item)
-        print("==============================================================")
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
 #            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
