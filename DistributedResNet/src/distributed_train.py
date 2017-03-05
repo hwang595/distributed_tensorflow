@@ -235,9 +235,11 @@ def train(target, all_data, all_labels, cluster_spec):
             weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
             new_grad_list.append(tf.mul(grad_on_worker, weight))
         grad_new = []
+        print("Here!")
+        print(new_grad_list)
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
-            grad_new.append((grad_elem[0], new_grad_list[x_idx]))
+            grad_new.append((new_grad_list[x_idx], grad_elem[1]))
 
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
