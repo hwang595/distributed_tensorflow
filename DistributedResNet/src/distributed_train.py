@@ -234,7 +234,7 @@ def train(target, all_data, all_labels, cluster_spec):
             grad_on_worker = grad_list[g_idx]
             weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
         #    new_grad_list.append(tf.mul(grad_on_worker, weight))
-            new_grad_list.append(tf.scalar_mul(weight, grad_on_worker))
+            new_grad_list.append(tf.scalar_mul(weight[0], grad_on_worker))
         print("Here")
         print(grads)
         grad_new = []
