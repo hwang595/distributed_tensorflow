@@ -355,7 +355,7 @@ def train(target, dataset, cluster_spec):
 
       duration = time.time() - start_time
       examples_per_sec = FLAGS.batch_size / float(duration)
-      format_str = ('Worker %d: %s: step %d, loss = %f, finish time = %.3f', 
+      format_str = ('Worker %d: %s: step %d, loss = %f, finish time = %.3f'
                     '(%.1f examples/sec; %.3f  sec/batch)')
       tf.logging.info(format_str %
                       (FLAGS.task_id, datetime.now(), step, loss_value, finish_time,
