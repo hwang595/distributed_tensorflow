@@ -41,12 +41,12 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "g2.2xlarge",
-    "worker_type" : "g2.2xlarge",
-    "ps_type" : "g2.2xlarge",
-    "evaluator_type" : "g2.2xlarge",
+    "master_type" : "t2.2xlarge",
+    "worker_type" : "t2.2xlarge",
+    "ps_type" : "t2.2xlarge",
+    "evaluator_type" : "t2.2xlarge",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-fbb8399b",
+    "image_id": "ami-35901755",
 
     # Launch specifications
     "spot_price" : "0.34",                 # Has to be a string

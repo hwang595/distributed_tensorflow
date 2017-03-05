@@ -181,7 +181,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
     with tf.device(
         tf.train.replica_device_setter(
-            worker_device='/job:worker/task:%d/gpu:0' % FLAGS.task_id,
+            worker_device='/job:worker/task:%d' % FLAGS.task_id,
             cluster=cluster_spec)):
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
@@ -358,7 +358,7 @@ def train(target, all_data, all_labels, cluster_spec):
             if FLAGS.timeline_logging:
                 run_options.trace_level=tf.RunOptions.FULL_TRACE
                 run_options.output_partition_graphs=True
-            
+
             feed_dict[weight_vec_placeholder] = x
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
