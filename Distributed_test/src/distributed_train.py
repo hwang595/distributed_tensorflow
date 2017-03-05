@@ -174,6 +174,23 @@ def train(target, dataset, cluster_spec):
 
     # Compute gradients with respect to the loss.
     grads = opt.compute_gradients(total_loss)
+
+    #===============================================================================================
+
+    weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
+                                            shape=(num_workers,))
+    grad_list = [x[0] for x in grads]
+    new_grad_list = []
+    for g_idx in range(len(grad_list)):
+        grad_on_worker = grad_list[g_idx]
+        weight = tf.slice(weight_vec_placeholder, [i], [1])
+        new_grad_list.append(tf.mul(grad_on_worker, weight))
+    for x_idx in range(len(grads)):
+        x = grads[x_idx]
+        x[0] = new_grad_list[x_idx]
+
+    #===============================================================================================
+
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
     else:
@@ -330,7 +347,7 @@ def train(target, dataset, cluster_spec):
       #run_options.timeout_in_ms = 1000 * 60 * 1
 
       # Increment current iteration
-      
+      feed_dict[weight_vec_placeholder] = x
       tf.logging.info("RUNNING SESSION... %f" % time.time())
       loss_value, step = sess.run([train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
       tf.logging.info("DONE RUNNING SESSION...")
@@ -355,10 +372,10 @@ def train(target, dataset, cluster_spec):
 
       duration = time.time() - start_time
       examples_per_sec = FLAGS.batch_size / float(duration)
-      format_str = ('Worker %d: %s: step %d, loss = %f, finish time = %.3f'
+      format_str = ('Worker %d: %s: step %d, loss = %f'
                     '(%.1f examples/sec; %.3f  sec/batch)')
       tf.logging.info(format_str %
-                      (FLAGS.task_id, datetime.now(), step, loss_value, finish_time,
+                      (FLAGS.task_id, datetime.now(), step, loss_value,
                          examples_per_sec, duration))
 
       # Determine if the summary_op should be run on the chief worker.
