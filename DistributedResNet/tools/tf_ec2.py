@@ -38,13 +38,13 @@ cfg = Cfg({
 
     # Region speficiation
     "region" : "us-west-2",
-    "availability_zone" : "us-west-2c",
+    "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.2xlarge",
-    "worker_type" : "t2.2xlarge",
-    "ps_type" : "t2.2xlarge",
-    "evaluator_type" : "t2.2xlarge",
+    "master_type" : "t2.xlarge",
+    "worker_type" : "t2.xlarge",
+    "ps_type" : "t2.xlarge",
+    "evaluator_type" : "t2.xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
