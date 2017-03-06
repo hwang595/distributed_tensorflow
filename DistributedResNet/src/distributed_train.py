@@ -247,6 +247,10 @@ def train(target, all_data, all_labels, cluster_spec):
         grad_new = []
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
+            print(grad_elem)
+            print(grad_elem[0])
+            print(grad_elem[1])
+            print('==================================================================================')
             grad_new.append((grad_elem[0], grad_elem[1]))
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
