@@ -244,7 +244,7 @@ def train(target, all_data, all_labels, cluster_spec):
         print(isinstance(grads, list))
         print("=========================================================================")
         '''
-        new_grad_list = []
+        grad_new = []
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
             grad_new.append((grad_elem[0], grad_elem[1]))
