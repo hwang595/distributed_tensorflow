@@ -38,7 +38,7 @@ cfg = Cfg({
 
     # Region speficiation
     "region" : "us-west-2",
-    "availability_zone" : "us-west-2c",
+    "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
     "master_type" : "t2.2xlarge",

@@ -247,10 +247,6 @@ def train(target, all_data, all_labels, cluster_spec):
         grad_new = []
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
-            print(grad_elem)
-            print(grad_elem[0])
-            print(grad_elem[1])
-            print('==================================================================================')
             grad_new.append((grad_elem[0], grad_elem[1]))
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
@@ -374,7 +370,7 @@ def train(target, all_data, all_labels, cluster_spec):
                 run_options.trace_level=tf.RunOptions.FULL_TRACE
                 run_options.output_partition_graphs=True
 
-            feed_dict[weight_vec_placeholder] = x
+#            feed_dict[weight_vec_placeholder] = x
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
                 #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
