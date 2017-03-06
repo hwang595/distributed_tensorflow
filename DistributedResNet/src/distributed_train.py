@@ -37,6 +37,7 @@ np.set_printoptions(threshold=np.nan)
 tf.logging.set_verbosity(tf.logging.INFO)
 
 FLAGS = tf.app.flags.FLAGS
+SEED = 542
 
 tf.app.flags.DEFINE_boolean('worker_times_cdf_method', False, 'Track worker times cdf')
 tf.app.flags.DEFINE_boolean('interval_method', False, 'Use the interval method')
@@ -207,7 +208,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
 #        predictions = tf.nn.softmax(logits)
 #        train_top1_error = top_k_error(predictions, label_placeholder, 1)
-
+        
         opt = tf.train.AdamOptimizer(lr)
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
             opt = TimeoutReplicasOptimizer(
@@ -225,30 +226,21 @@ def train(target, all_data, all_labels, cluster_spec):
         grads = opt.compute_gradients(total_loss)
         #compute weighted gradients here.
         #===============================================================================================
-        '''
+
         weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                                 shape=(num_workers,))
         grad_list = [x[0] for x in grads]
         new_grad_list = []
         for g_idx in range(len(grad_list)):
             grad_on_worker = grad_list[g_idx]
-            weight = tf.slice(weight_vec_placeholder, [g_idx], [1])
+            weight = tf.slice(weight_vec_placeholder, [FLAGS.task_id], [1])
             new_grad_list.append(tf.scalar_mul(weight[0], grad_on_worker))
         grad_new = []
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
             grad_new.append((new_grad_list[x_idx], grad_elem[1]))
-        '''
-        grad_new = []
-        for x_idx in range(len(grads)):
-            grad_elem = grads[x_idx]
-            grad_new.append((grad_elem[0], grad_elem[1]))
+
         #===============================================================================================
-        print(grads)
-        print("")
-        print("=========================================================================")
-        print(grad_new)
-        print("")
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
 #            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
             apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
@@ -307,6 +299,7 @@ def train(target, all_data, all_labels, cluster_spec):
         if FLAGS.task_id == 0 and FLAGS.interval_method:
             opt.start_interval_updates(sess, timeout_client)   
 
+        np.random.seed(SEED)
         b = np.ones(int(num_batches_per_epoch))
         interval = np.arange(0, int(num_batches_per_epoch))
         idx_list = np.random.choice(interval, int(num_workers), replace=False)     
@@ -328,49 +321,49 @@ def train(target, all_data, all_labels, cluster_spec):
             run_metadata = tf.RunMetadata()
 
             #===============================================================================================    
-            if FLAGS.task_id == 0:
-                LS_start_time = time.time()
-                interval_2 = np.arange(0, int(num_workers))
-                workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
-                #interval_2 = np.arange(0, WORKER_NUM)
-                #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
-                A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
-                for i in range(A.shape[0]):
-                  if i == A.shape[0]-1:
-                    A[i][idx_list[i]] = 1
-                    A[i][idx_list[0]] = 1
-                  else:
-                    A[i][idx_list[i]] = 1
-                    A[i][idx_list[i+1]] = 1
+            np.random.seed(SEED)
+            LS_start_time = time.time()
+            interval_2 = np.arange(0, int(num_workers))
+            workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
+            #interval_2 = np.arange(0, WORKER_NUM)
+            #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
+            A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
+            for i in range(A.shape[0]):
+              if i == A.shape[0]-1:
+                A[i][idx_list[i]] = 1
+                A[i][idx_list[0]] = 1
+              else:
+                A[i][idx_list[i]] = 1
+                A[i][idx_list[i+1]] = 1
 
-                for i in range(len(idx_list)):
-                  element = idx_list[i]
-                  if element == A.shape[1]-1:
-                    idx_list[i] = 0
-                  else:
-                    idx_list[i] += 1
+            for i in range(len(idx_list)):
+              element = idx_list[i]
+              if element == A.shape[1]-1:
+                idx_list[i] = 0
+              else:
+                idx_list[i] += 1
 
-                for k in workers_to_kill:
-                  A[k] = 0
+            for k in workers_to_kill:
+              A[k] = 0
 
-                A_for_calc = np.transpose(A)
-                x = np.dot(np.linalg.pinv(A_for_calc), b)
-                tf.logging.info("workers killed this iteration:")
-                tf.logging.info(str(workers_to_kill))
-                tf.logging.info("The matrix to solve:")
-                for item in A_for_calc:
-                  tf.logging.info(str(item))
-                tf.logging.info("Solution of LS:")
-                tf.logging.info(str(x)) 
-                LS_duration = time.time() - LS_start_time
-                tf.logging.info("LS run time: %s" % str(LS_duration))          
+            A_for_calc = np.transpose(A)
+            ls_solution = np.dot(np.linalg.pinv(A_for_calc), b)
+            tf.logging.info("workers killed this iteration:")
+            tf.logging.info(str(workers_to_kill))
+            tf.logging.info("The matrix to solve:")
+            for item in A_for_calc:
+              tf.logging.info(str(item))
+            tf.logging.info("Solution of LS:")
+            tf.logging.info(str(ls_solution)) 
+            LS_duration = time.time() - LS_start_time
+            tf.logging.info("LS run time: %s" % str(LS_duration))          
             #===============================================================================================             
 
             if FLAGS.timeline_logging:
                 run_options.trace_level=tf.RunOptions.FULL_TRACE
                 run_options.output_partition_graphs=True
 
-#            feed_dict[weight_vec_placeholder] = x
+            feed_dict[weight_vec_placeholder] = ls_solution
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
                 #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
