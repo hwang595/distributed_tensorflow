@@ -225,7 +225,7 @@ def train(target, all_data, all_labels, cluster_spec):
         grads = opt.compute_gradients(total_loss)
         #compute weighted gradients here.
         #===============================================================================================
-
+        '''
         weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                                 shape=(num_workers,))
         grad_list = [x[0] for x in grads]
@@ -243,6 +243,11 @@ def train(target, all_data, all_labels, cluster_spec):
             grad_new.append((new_grad_list[x_idx], grad_elem[1]))
         print(isinstance(grads, list))
         print("=========================================================================")
+        '''
+        new_grad_list = []
+        for x_idx in range(len(grads)):
+            grad_elem = grads[x_idx]
+            grad_new.append((grad_elem[0], grad_elem[1]))
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
 #            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
