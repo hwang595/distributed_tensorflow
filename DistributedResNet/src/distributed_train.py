@@ -244,7 +244,11 @@ def train(target, all_data, all_labels, cluster_spec):
             grad_elem = grads[x_idx]
             grad_new.append((grad_elem[0], grad_elem[1]))
         #===============================================================================================
-
+        print(grads)
+        print ''
+        print("=========================================================================")
+        print(grad_new)
+        print ''
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
 #            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
             apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
