@@ -215,8 +215,8 @@ def train(target, all_data, all_labels, cluster_spec):
                 global_step,
                 total_num_replicas=num_workers)
         else:
-#            opt = tf.train.SyncReplicasOptimizerV2(
-            opt = tf.train.SyncReplicasOptimizer(
+            opt = tf.train.SyncReplicasOptimizerV2(
+#            opt = tf.train.SyncReplicasOptimizer(
                 opt,
                 replicas_to_aggregate=num_replicas_to_aggregate,
                 total_num_replicas=num_workers)
