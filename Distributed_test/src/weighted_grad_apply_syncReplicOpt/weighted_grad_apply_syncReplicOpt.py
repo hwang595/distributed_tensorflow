@@ -234,10 +234,14 @@ class WeightedGradsOptimizer(optimizer.Optimizer):
     with ops.name_scope(None, self._name):
       for grad, var in grads_and_vars:
         var_list.append(var)
-        tf.logging.info("Logging Start from Here:")
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
         with ops.device(var.device):
           # Dense gradients.
+          tf.logging.info("Logging Start from Here:")
+          tf.logging.info("AAAAAAAAAA")
+          tf.logging.info("BBBBBBBBBB")
+          tf.logging.info("CCCCCCCCCC")
+          tf.logging.info("DDDDDDDDDD")
           if grad is None:
             aggregated_grad.append(None)  # pass-through.
             continue
