@@ -8,6 +8,7 @@ from __future__ import print_function
 from datetime import datetime
 from threading import Timer
 from sync_replicas_optimizer_modified.sync_replicas_optimizer_modified import TimeoutReplicasOptimizer
+from weighted_grad_apply_syncReplicOpt import TimeoutReplicasOptimizer
 import os.path
 import time
 
@@ -166,7 +167,7 @@ def train(target, dataset, cluster_spec):
         global_step,
         total_num_replicas=num_workers)
     else:
-      opt = tf.train.SyncReplicasOptimizerV2(
+      opt = tf.train.WeightedGradsOptimizer(
 #      opt = tf.train.SyncReplicasOptimizer(
         opt,
         replicas_to_aggregate=num_replicas_to_aggregate,
@@ -299,7 +300,8 @@ def train(target, dataset, cluster_spec):
       run_options = tf.RunOptions()
       run_metadata = tf.RunMetadata()
 
-      #===============================================================================================    
+      #===============================================================================================
+      '''    
       if FLAGS.task_id == 0:
         LS_start_time = time.time()
         interval_2 = np.arange(0, int(num_workers))
@@ -335,7 +337,8 @@ def train(target, dataset, cluster_spec):
         tf.logging.info("Solution of LS:")
         tf.logging.info(str(x)) 
         LS_duration = time.time() - LS_start_time
-        tf.logging.info("LS run time: %s" % str(LS_duration))          
+        tf.logging.info("LS run time: %s" % str(LS_duration))
+      '''           
       #===============================================================================================    
 
       if FLAGS.timeline_logging:
