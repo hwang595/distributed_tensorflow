@@ -18,6 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+import tensorflow as tf
 from tensorflow.core.framework import types_pb2
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops
@@ -30,6 +32,8 @@ from tensorflow.python.training import optimizer
 from tensorflow.python.training import queue_runner
 from tensorflow.python.training import session_manager
 from tensorflow.python.training import session_run_hook
+
+FLAGS = tf.app.flags.FLAGS
 
 
 # Please note that the gradients from replicas are averaged instead of summed
