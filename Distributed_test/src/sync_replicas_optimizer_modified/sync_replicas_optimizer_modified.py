@@ -364,6 +364,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
+          tf.logging.info("Logging happenining here!")
+          tf.logging.info("AAAAAA")
+          tf.logging.info("BBBBBB")
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
