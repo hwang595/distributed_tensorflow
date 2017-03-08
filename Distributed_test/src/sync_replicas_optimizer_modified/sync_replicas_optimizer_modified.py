@@ -331,6 +331,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
+            ps_print_test0 = logging_ops.Print(var.device, [var.device], message="Print device Worker")
+            train_ops.append(ps_print_test0)
             if grad is None:
               continue
 
@@ -361,12 +363,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
-        ps_print_index = logging_ops.Print(index, [index], message="Index from grad on ps")
-        train_ops.append(ps_print_index)
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
-          #ps_print_test = logging_ops.Print(global_step, [global_step], message="Merge grads from workers happening here!")
-          #train_ops.append(ps_print_test)
+          ps_print_test = logging_ops.Print(var.device, [var.device], message="Print device PS")
+          train_ops.append(ps_print_test)
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
