@@ -359,28 +359,25 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 
-
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
-          ps_print_test = logging_ops.Print(global_step, [global_step], message="0Merge grads from workers happening here!")
+          ps_print_test = logging_ops.Print(global_step, [global_step], message="Merge grads from workers happening here!")
+          train_ops.append(ps_print_test)
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
             if collect_cdfs:
-              ps_print_test = logging_ops.Print(global_step, [global_step], message="1Merge grads from workers happening here!")
               aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
             else:
               aggregated_grad.append(grad_accum.take_grad(1))
           else:
             if collect_cdfs:
-              ps_print_test = logging_ops.Print(global_step, [global_step], message="2Merge grads from workers happening here!")
               aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
             else:
               aggregated_grad.append(grad_accum.take_indexed_slices_grad(1))
 
-      ps_print_test = logging_ops.Print(global_step, [global_step], message="3Merge grads from workers happening here!")
       aggregated_grads_and_vars = zip(aggregated_grad, var_list)
 
       # Some debug operations
