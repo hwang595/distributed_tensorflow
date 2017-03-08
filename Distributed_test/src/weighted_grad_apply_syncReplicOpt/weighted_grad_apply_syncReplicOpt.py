@@ -148,9 +148,9 @@ class WeightedGradsOptimizer(optimizer.Optimizer):
     if total_num_replicas is None:
       total_num_replicas = replicas_to_aggregate
 
-    super(SyncReplicasOptimizer, self).__init__(use_locking, name)
+    super(WeightedGradsOptimizer, self).__init__(use_locking, name)
     logging.info(
-        "SyncReplicasV2: replicas_to_aggregate=%s; total_num_replicas=%s",
+        "WeightedGradsOptimizer: replicas_to_aggregate=%s; total_num_replicas=%s",
         replicas_to_aggregate, total_num_replicas)
     self._opt = opt
     self._replicas_to_aggregate = replicas_to_aggregate
