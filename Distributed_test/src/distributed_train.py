@@ -8,7 +8,7 @@ from __future__ import print_function
 from datetime import datetime
 from threading import Timer
 from sync_replicas_optimizer_modified.sync_replicas_optimizer_modified import TimeoutReplicasOptimizer
-from weighted_grad_apply_syncReplicOpt import TimeoutReplicasOptimizer
+from weighted_grad_apply_syncReplicOpt.weighted_grad_apply_syncReplicOpt import TimeoutReplicasOptimizer
 import os.path
 import time
 
