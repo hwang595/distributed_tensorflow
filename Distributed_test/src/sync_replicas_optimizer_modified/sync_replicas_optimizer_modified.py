@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import numpy as np
 import tensorflow as tf
 from threading import Timer
 from tensorflow.core.framework import types_pb2
@@ -234,7 +235,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
-  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
+  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False,
+      batch_idx_list=None, worker_kill_list=None, num_workers=None, num_batches_per_epoch=None):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
@@ -331,8 +333,33 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
-            ps_print_test0 = logging_ops.Print(worker_id, [worker_id], message="Print device Worker_ID")
-            train_ops.append(ps_print_test0)
+            '''Implement LS computation and solution here'''            
+            b = np.ones(int(num_batches_per_epoch))
+            A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
+                    for i in range(A.shape[0]):
+                      if i == A.shape[0]-1:
+                        A[i][batch_idx_list[i]] = 1
+                        A[i][batch_idx_list[0]] = 1
+                      else:
+                        A[i][batch_idx_list[i]] = 1
+                        A[i][batch_idx_list[i+1]] = 1
+
+                    for i in range(len(batch_idx_list)):
+                      element = batch_idx_list[i]
+                      if element == A.shape[1]-1:
+                        batch_idx_list[i] = 0
+                      else:
+                        batch_idx_list[i] += 1            
+            '''Done computation'''
+            
+            for k in workers_to_kill:
+            A[k] = 0             
+
+            A_for_calc = np.transpose(A)
+            LS_solution = np.dot(np.linalg.pinv(A_for_calc), b)
+            weight = tf.slice(weight_vec_placeholder, [worker_id], [1])
+            weighted_grad = tf.scalar_mul(weight[0], grad)
+            '''Kill some workers'''
             if grad is None:
               continue
 
@@ -341,7 +368,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
-                  apply_grad_op = grad_accum.apply_grad(grad,
+#                  apply_grad_op = grad_accum.apply_grad(grad,
+                  apply_grad_op = grad_accum.apply_grad(weighted_grad,
                                                         local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
@@ -356,7 +384,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
-                    grad, local_step=self._local_step._ref())
+#                    grad, local_step=self._local_step._ref())
+                    weighted_grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)

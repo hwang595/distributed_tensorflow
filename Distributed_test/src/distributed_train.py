@@ -177,6 +177,8 @@ def train(target, dataset, cluster_spec):
     grads = opt.compute_gradients(total_loss)
 
     #===============================================================================================
+    batch_idx_placeholder = tf.placeholder(dtype=tf.int32, shape=(int(num_workers),))
+    worker_kill_placeholder = tf.placeholder(dtype=tf.int32, shape=(FLAGS.num_worker_kill,))
     '''
     weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                             shape=(num_workers,))
@@ -193,7 +195,9 @@ def train(target, dataset, cluster_spec):
     #===============================================================================================
 
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method,
+                            batch_idx_list=batch_idx_placeholder, worker_kill_list=worker_kill_placeholder, 
+                            num_workers=int(num_workers), num_batches_per_epoch=int(num_batches_per_epoch))
     else:
       apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 
@@ -277,7 +281,7 @@ def train(target, dataset, cluster_spec):
       opt.start_interval_updates(sess, timeout_client)
 
     #the result of normal eqiation waited to be solved like min||Ax - b||^2
-    b = np.ones(int(num_batches_per_epoch))
+#    b = np.ones(int(num_batches_per_epoch))
     interval = np.arange(0, int(num_batches_per_epoch))
     idx_list = np.random.choice(interval, int(num_workers), replace=False)  
     while not sv.should_stop():
@@ -301,6 +305,8 @@ def train(target, dataset, cluster_spec):
       run_metadata = tf.RunMetadata()
 
       #===============================================================================================
+      interval_2 = np.arange(0, int(num_workers))
+      workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
       '''    
       if FLAGS.task_id == 0:
         LS_start_time = time.time()
@@ -350,10 +356,20 @@ def train(target, dataset, cluster_spec):
       #run_options.timeout_in_ms = 1000 * 60 * 1
 
       # Increment current iteration
-#      feed_dict[weight_vec_placeholder] = x
+      # Two more tiem in placeholder feed_dict
+      feed_dict[batch_idx_placeholder] = idx_list
+      feed_dict[worker_kill_placeholder] = workers_to_kill
+
       tf.logging.info("RUNNING SESSION... %f" % time.time())
       loss_value, step = sess.run([train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
       tf.logging.info("DONE RUNNING SESSION...")
+
+      for i in range(len(idx_list)):
+        element = idx_list[i]
+        if element == A.shape[1]-1:
+          idx_list[i] = 0
+        else:
+          idx_list[i] += 1      
 
       if FLAGS.worker_times_cdf_method:
         timeout_client.broadcast_worker_finished_computing_gradients(cur_iteration)
