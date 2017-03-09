@@ -344,11 +344,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               if i == A.shape[0]-1:
 #                A[i][batch_idx_list[i]] = 1
 #                A[i][batch_idx_list[0]] = 1
-                A[i][tf.slice(batch_idx_list, [i], [1])[0]] = 1
-                A[i][tf.slice(batch_idx_list, [0], [1])[0]] = 1
+                A[i][int(tf.slice(batch_idx_list, [i], [1])[0])] = 1
+                A[i][int(tf.slice(batch_idx_list, [0], [1])[0])] = 1
               else:
-                A[i][tf.slice(batch_idx_list, [i], [1])[0]] = 1
-                A[i][tf.slice(batch_idx_list, [i+1], [1])[0]] = 1
+                A[i][int(tf.slice(batch_idx_list, [i], [1])[0])] = 1
+                A[i][int(tf.slice(batch_idx_list, [i+1], [1])[0])] = 1
 
             for i in range(len(batch_idx_list)):
               element = batch_idx_list[i]
