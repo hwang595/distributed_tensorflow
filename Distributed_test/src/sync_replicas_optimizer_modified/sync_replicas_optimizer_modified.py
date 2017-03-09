@@ -339,7 +339,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             tf.logging.info(var.device)
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
-            b = tf.ones([int(num_batches_per_epoch), 1], tf.float32)
+            b = tf.ones([int(num_batches_per_epoch),], tf.float32)
             '''
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
             for i in range(A.shape[0]):
