@@ -339,7 +339,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             tf.logging.info(var.device)
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
-            b = tf.ones([int(num_batches_per_epoch),], tf.float32)
+            b = tf.ones([int(num_batches_per_epoch),1], tf.float32)
             '''
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
             for i in range(A.shape[0]):
@@ -368,7 +368,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             A = matrix_to_solve
 #            A_for_calc = np.transpose(A)
             LS_solution = linalg_ops.matrix_solve_ls(A, b)
-            weight = tf.slice(LS_solution, [worker_id], [1])
+            LS_calc = tf.reshape(LS_solution, [-1])
+            print("Heieheiheiehei")
+            print(tf.shape(LS_calc))
+            weight = tf.slice(LS_calc, [worker_id], [1])
             weighted_grad = tf.scalar_mul(weight[0], grad)
             '''Kill some workers'''
             if grad is None:
