@@ -336,11 +336,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             '''Implement LS computation and solution here'''            
             b = np.ones(int(num_batches_per_epoch))
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
+            tf.logging.info("Logging Happens here!")
+            tf.logging.info(str(batch_idx_list))
             for i in range(A.shape[0]):
-              print(batch_idx_list[i])
-              print(batch_idx_list[0])
-              print("Hahahahaha")
-              print("=====================================================================================")
               if i == A.shape[0]-1:
                 A[i][batch_idx_list[i]] = 1
                 A[i][batch_idx_list[0]] = 1
