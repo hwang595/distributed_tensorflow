@@ -336,20 +336,20 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             '''Implement LS computation and solution here'''            
             b = np.ones(int(num_batches_per_epoch))
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
-                    for i in range(A.shape[0]):
-                      if i == A.shape[0]-1:
-                        A[i][batch_idx_list[i]] = 1
-                        A[i][batch_idx_list[0]] = 1
-                      else:
-                        A[i][batch_idx_list[i]] = 1
-                        A[i][batch_idx_list[i+1]] = 1
+            for i in range(A.shape[0]):
+              if i == A.shape[0]-1:
+                A[i][batch_idx_list[i]] = 1
+                A[i][batch_idx_list[0]] = 1
+              else:
+                A[i][batch_idx_list[i]] = 1
+                A[i][batch_idx_list[i+1]] = 1
 
-                    for i in range(len(batch_idx_list)):
-                      element = batch_idx_list[i]
-                      if element == A.shape[1]-1:
-                        batch_idx_list[i] = 0
-                      else:
-                        batch_idx_list[i] += 1            
+            for i in range(len(batch_idx_list)):
+              element = batch_idx_list[i]
+              if element == A.shape[1]-1:
+                batch_idx_list[i] = 0
+              else:
+                batch_idx_list[i] += 1            
             '''Done computation'''
             
             for k in workers_to_kill:
