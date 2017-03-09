@@ -180,7 +180,7 @@ def train(target, dataset, cluster_spec):
     #===============================================================================================
 #    batch_idx_placeholder = tf.placeholder(dtype=tf.int32, shape=(int(num_workers),))
 #    worker_kill_placeholder = tf.placeholder(dtype=tf.int32, shape=(FLAGS.num_worker_kill,))
-    matrix_placeholder = tf.placeholder(dtype=tf.int32, shape=((int(num_batches_per_epoch), int(num_workers))))
+    matrix_placeholder = tf.placeholder(dtype=tf.float32, shape=((int(num_batches_per_epoch), int(num_workers))))
     '''
     weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                             shape=(num_workers,))
