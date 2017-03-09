@@ -367,7 +367,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             '''             
             A = matrix_to_solve
 #            A_for_calc = np.transpose(A)
-            LS_solution = linalg_ops.matrix_solve_ls(A, b)
+            LS_solution = linalg_ops.matrix_solve_ls(A, b, fast=False)
             LS_calc = tf.reshape(LS_solution, [-1])
             print("Heieheiheiehei")
             print(tf.shape(LS_calc))
