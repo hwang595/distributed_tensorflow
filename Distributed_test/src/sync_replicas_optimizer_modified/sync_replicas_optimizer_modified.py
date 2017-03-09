@@ -334,9 +334,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       with ops.control_dependencies([update_local_step_op]):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
+          train_ops.append(print_start_op)
           with ops.device(var.device):
-            tf.logging.info("Logging Happens Here0!")
-            tf.logging.info(var.device)
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
             b = tf.ones([int(num_batches_per_epoch),1], tf.float32)
@@ -369,9 +368,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 #            A_for_calc = np.transpose(A)
             LS_solution = linalg_ops.matrix_solve_ls(A, b, fast=False)
             LS_calc = tf.reshape(LS_solution, [-1])
-            print("Heieheiheiehei")
-            print(tf.shape(LS_calc))
             weight = tf.slice(LS_calc, [worker_id], [1])
+            print_ls_op = logging_ops.Print(LS_calc, [LS_calc], message="Solution for LS!")
+            train_ops.append(print_ls_op)
             weighted_grad = tf.scalar_mul(weight[0], grad)
             '''Kill some workers'''
             if grad is None:

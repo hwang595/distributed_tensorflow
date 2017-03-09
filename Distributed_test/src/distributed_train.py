@@ -337,8 +337,6 @@ def train(target, dataset, cluster_spec):
         A[k] = 0
 
       A_for_calc = np.transpose(A)
-      print(A_for_calc.shape)
-      print("===================================================")
 #      x = np.dot(np.linalg.pinv(A_for_calc), b)
 #      tf.logging.info("workers killed this iteration:")
 #      tf.logging.info(str(workers_to_kill))
