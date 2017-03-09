@@ -353,7 +353,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             '''Done computation'''
             
             for k in workers_to_kill:
-            A[k] = 0             
+              A[k] = 0             
 
             A_for_calc = np.transpose(A)
             LS_solution = np.dot(np.linalg.pinv(A_for_calc), b)
