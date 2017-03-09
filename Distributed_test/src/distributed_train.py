@@ -201,7 +201,7 @@ def train(target, dataset, cluster_spec):
 #                            batch_idx_list=batch_idx_placeholder, worker_kill_list=worker_kill_placeholder, 
 #                            num_workers=int(num_workers), num_batches_per_epoch=int(num_batches_per_epoch))
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method, 
-        matrix_to_solve=matrix_placeholder)
+        matrix_to_solve=matrix_placeholder, num_batches_per_epoch=int(num_batches_per_epoch))
     else:
       apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 

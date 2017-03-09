@@ -237,7 +237,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False,
     #  batch_idx_list=None, worker_kill_list=None, num_workers=None, num_batches_per_epoch=None):
-    matrix_to_solve=None):
+    matrix_to_solve=None, num_batches_per_epoch=None):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
