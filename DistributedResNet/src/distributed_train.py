@@ -234,6 +234,8 @@ def train(target, all_data, all_labels, cluster_spec):
         for g_idx in range(len(grad_list)):
             grad_on_worker = grad_list[g_idx]
             weight = tf.slice(weight_vec_placeholder, [FLAGS.task_id], [1])
+            tf.logging.info("Logging Happens Here!")
+            tf.logging.info(weight[0])
             new_grad_list.append(tf.scalar_mul(weight[0], grad_on_worker))
         grad_new = []
         for x_idx in range(len(grads)):

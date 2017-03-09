@@ -41,10 +41,10 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.large",
-    "worker_type" : "t2.large",
-    "ps_type" : "t2.large",
-    "evaluator_type" : "t2.large",
+    "master_type" : "t2.xlarge",
+    "worker_type" : "t2.xlarge",
+    "ps_type" : "t2.xlarge",
+    "evaluator_type" : "t2.xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "256",
+    "batch_size" : "1024",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
