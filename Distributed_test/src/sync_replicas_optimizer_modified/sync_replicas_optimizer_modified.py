@@ -333,18 +333,20 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
+            tf.logging.info("Logging Happens Here0!")
+            tf.logging.info(var.device)
             '''Implement LS computation and solution here'''            
             b = np.ones(int(num_batches_per_epoch))
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
-            tf.logging.info("Logging Happens here!")
-            tf.logging.info(str(batch_idx_list))
             for i in range(A.shape[0]):
               if i == A.shape[0]-1:
-                A[i][batch_idx_list[i]] = 1
-                A[i][batch_idx_list[0]] = 1
+#                A[i][batch_idx_list[i]] = 1
+#                A[i][batch_idx_list[0]] = 1
+                A[i][tf.slice(batch_idx_list, [i], [1])[0]] = 1
+                A[i][tf.slice(batch_idx_list, [0], [1])[0]] = 1
               else:
-                A[i][batch_idx_list[i]] = 1
-                A[i][batch_idx_list[i+1]] = 1
+                A[i][tf.slice(batch_idx_list, [i], [1])[0]] = 1
+                A[i][tf.slice(batch_idx_list, [i+1], [1])[0]] = 1
 
             for i in range(len(batch_idx_list)):
               element = batch_idx_list[i]
