@@ -180,7 +180,7 @@ def train(target, dataset, cluster_spec):
     #===============================================================================================
 #    batch_idx_placeholder = tf.placeholder(dtype=tf.int32, shape=(int(num_workers),))
 #    worker_kill_placeholder = tf.placeholder(dtype=tf.int32, shape=(FLAGS.num_worker_kill,))
-    matrix_placeholder = tf.placeholder(dtype=tf.int32, shape=((int(num_workers), int(num_batches_per_epoch))))
+    matrix_placeholder = tf.placeholder(dtype=tf.int32, shape=((int(num_batches_per_epoch), int(num_workers))))
     '''
     weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                             shape=(num_workers,))
@@ -336,7 +336,7 @@ def train(target, dataset, cluster_spec):
       for k in workers_to_kill:
         A[k] = 0
 
-#      A_for_calc = np.transpose(A)
+      A_for_calc = np.transpose(A)
 #      x = np.dot(np.linalg.pinv(A_for_calc), b)
 #      tf.logging.info("workers killed this iteration:")
 #      tf.logging.info(str(workers_to_kill))
@@ -360,7 +360,7 @@ def train(target, dataset, cluster_spec):
 
       # Increment current iteration
       # Two more tiem in placeholder feed_dict
-      feed_dict[matrix_placeholder] = A
+      feed_dict[matrix_placeholder] = A_for_calc
 
       tf.logging.info("RUNNING SESSION... %f" % time.time())
       loss_value, step = sess.run([train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)

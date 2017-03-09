@@ -30,6 +30,7 @@ from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import variables
+from tensorflow.python.ops import linalg_ops
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.ops import logging_ops
 
@@ -364,9 +365,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               A[k] = 0
             '''             
             A = matrix_to_solve
-            A_for_calc = np.transpose(A)
-            LS_solution = np.dot(np.linalg.pinv(A_for_calc), b)
-            weight = tf.slice(weight_vec_placeholder, [worker_id], [1])
+#            A_for_calc = np.transpose(A)
+            LS_solution = linalg_ops.matrix_solve_ls(A, b)
+            weight = tf.slice(LS_solution, [worker_id], [1])
             weighted_grad = tf.scalar_mul(weight[0], grad)
             '''Kill some workers'''
             if grad is None:
