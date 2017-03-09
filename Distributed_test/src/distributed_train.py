@@ -57,6 +57,7 @@ tf.app.flags.DEFINE_integer('rpc_port', 1235,
 tf.app.flags.DEFINE_integer('max_steps', 1000000, 'Number of batches to run.')
 tf.app.flags.DEFINE_integer('batch_size', 128, 'Batch size.')
 tf.app.flags.DEFINE_integer('num_worker_kill', 3, 'Number of workers to kill.')
+tf.app.flags.DEFINE_integer('random_seed', 142, 'Number of workers to kill.')
 tf.app.flags.DEFINE_string('subset', 'train', 'Either "train" or "validation".')
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             'Whether to log device placement.')
@@ -177,8 +178,9 @@ def train(target, dataset, cluster_spec):
     grads = opt.compute_gradients(total_loss)
 
     #===============================================================================================
-    batch_idx_placeholder = tf.placeholder(dtype=tf.int32, shape=(int(num_workers),))
-    worker_kill_placeholder = tf.placeholder(dtype=tf.int32, shape=(FLAGS.num_worker_kill,))
+#    batch_idx_placeholder = tf.placeholder(dtype=tf.int32, shape=(int(num_workers),))
+#    worker_kill_placeholder = tf.placeholder(dtype=tf.int32, shape=(FLAGS.num_worker_kill,))
+    matrix_placeholder = tf.placeholder(dtype=tf.int32, shape=((int(num_workers), int(num_batches_per_epoch))))
     '''
     weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                             shape=(num_workers,))
@@ -195,9 +197,11 @@ def train(target, dataset, cluster_spec):
     #===============================================================================================
 
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method,
-                            batch_idx_list=batch_idx_placeholder, worker_kill_list=worker_kill_placeholder, 
-                            num_workers=int(num_workers), num_batches_per_epoch=int(num_batches_per_epoch))
+#      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method,
+#                            batch_idx_list=batch_idx_placeholder, worker_kill_list=worker_kill_placeholder, 
+#                            num_workers=int(num_workers), num_batches_per_epoch=int(num_batches_per_epoch))
+      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method, 
+        matrix_to_solve=matrix_placeholder)
     else:
       apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 
@@ -305,46 +309,45 @@ def train(target, dataset, cluster_spec):
       run_metadata = tf.RunMetadata()
 
       #===============================================================================================
+#      interval_2 = np.arange(0, int(num_workers))
+#      workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
+
+      LS_start_time = time.time()
       interval_2 = np.arange(0, int(num_workers))
       workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
-      '''    
-      if FLAGS.task_id == 0:
-        LS_start_time = time.time()
-        interval_2 = np.arange(0, int(num_workers))
-        workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
-        #interval_2 = np.arange(0, WORKER_NUM)
-        #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
-        A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
-        for i in range(A.shape[0]):
-          if i == A.shape[0]-1:
-            A[i][idx_list[i]] = 1
-            A[i][idx_list[0]] = 1
-          else:
-            A[i][idx_list[i]] = 1
-            A[i][idx_list[i+1]] = 1
+      #interval_2 = np.arange(0, WORKER_NUM)
+      #workers_to_kill = np.random.choice(interval_2, NUM_WORKER_KILL, replace=False)
+      A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
+      for i in range(A.shape[0]):
+        if i == A.shape[0]-1:
+          A[i][idx_list[i]] = 1
+          A[i][idx_list[0]] = 1
+        else:
+          A[i][idx_list[i]] = 1
+          A[i][idx_list[i+1]] = 1
 
-        for i in range(len(idx_list)):
-          element = idx_list[i]
-          if element == A.shape[1]-1:
-            idx_list[i] = 0
-          else:
-            idx_list[i] += 1
+      for i in range(len(idx_list)):
+        element = idx_list[i]
+        if element == A.shape[1]-1:
+          idx_list[i] = 0
+        else:
+          idx_list[i] += 1
 
-        for k in workers_to_kill:
-          A[k] = 0
+      for k in workers_to_kill:
+        A[k] = 0
 
-        A_for_calc = np.transpose(A)
-        x = np.dot(np.linalg.pinv(A_for_calc), b)
-        tf.logging.info("workers killed this iteration:")
-        tf.logging.info(str(workers_to_kill))
-      #  tf.logging.info("The matrix to solve:")
-      #  for item in A_for_calc:
-      #    tf.logging.info(str(item))
-        tf.logging.info("Solution of LS:")
-        tf.logging.info(str(x)) 
-        LS_duration = time.time() - LS_start_time
-        tf.logging.info("LS run time: %s" % str(LS_duration))
-      '''           
+#      A_for_calc = np.transpose(A)
+#      x = np.dot(np.linalg.pinv(A_for_calc), b)
+#      tf.logging.info("workers killed this iteration:")
+#      tf.logging.info(str(workers_to_kill))
+    #  tf.logging.info("The matrix to solve:")
+    #  for item in A_for_calc:
+    #    tf.logging.info(str(item))
+#      tf.logging.info("Solution of LS:")
+#      tf.logging.info(str(x)) 
+#      LS_duration = time.time() - LS_start_time
+#      tf.logging.info("LS run time: %s" % str(LS_duration))
+         
       #===============================================================================================    
 
       if FLAGS.timeline_logging:
@@ -357,19 +360,11 @@ def train(target, dataset, cluster_spec):
 
       # Increment current iteration
       # Two more tiem in placeholder feed_dict
-      feed_dict[batch_idx_placeholder] = idx_list
-      feed_dict[worker_kill_placeholder] = workers_to_kill
+      feed_dict[matrix_placeholder] = A
 
       tf.logging.info("RUNNING SESSION... %f" % time.time())
       loss_value, step = sess.run([train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
-      tf.logging.info("DONE RUNNING SESSION...")
-
-      for i in range(len(idx_list)):
-        element = idx_list[i]
-        if element == A.shape[1]-1:
-          idx_list[i] = 0
-        else:
-          idx_list[i] += 1      
+      tf.logging.info("DONE RUNNING SESSION...")    
 
       if FLAGS.worker_times_cdf_method:
         timeout_client.broadcast_worker_finished_computing_gradients(cur_iteration)

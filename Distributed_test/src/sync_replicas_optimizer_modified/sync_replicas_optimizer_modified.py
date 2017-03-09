@@ -236,7 +236,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       return grads_and_vars
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False,
-      batch_idx_list=None, worker_kill_list=None, num_workers=None, num_batches_per_epoch=None):
+    #  batch_idx_list=None, worker_kill_list=None, num_workers=None, num_batches_per_epoch=None):
+    matrix_to_solve=None):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
@@ -337,6 +338,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             tf.logging.info(var.device)
             '''Implement LS computation and solution here'''            
             b = np.ones(int(num_batches_per_epoch))
+            '''
             A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
             for i in range(A.shape[0]):
               tf.logging.info("Logging Happens Here1!")
@@ -356,11 +358,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 batch_idx_list[i] = 0
               else:
                 batch_idx_list[i] += 1            
-            '''Done computation'''
+#            Done computation
             
             for k in workers_to_kill:
-              A[k] = 0             
-
+              A[k] = 0
+            '''             
+            A = matrix_to_solve
             A_for_calc = np.transpose(A)
             LS_solution = np.dot(np.linalg.pinv(A_for_calc), b)
             weight = tf.slice(weight_vec_placeholder, [worker_id], [1])
