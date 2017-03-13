@@ -41,10 +41,10 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.large",
-    "worker_type" : "t2.large",
-    "ps_type" : "t2.large",
-    "evaluator_type" : "t2.large",
+    "master_type" : "t2.xlarge",
+    "worker_type" : "t2.xlarge",
+    "ps_type" : "t2.xlarge",
+    "evaluator_type" : "t2.xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
@@ -339,7 +339,7 @@ def tf_ec2_run(argv, configuration):
           stdout.close()
           stdin.close()
           client.close()
-#          done = True
+          done = True
 #           except:
 #              done = False
         return output
