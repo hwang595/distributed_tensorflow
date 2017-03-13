@@ -389,8 +389,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grad_accum = self._accumulator_list[index][0]
           work_idx_print1 = logging_ops.Print(worker_id, [worker_id], message="worker id for aggregate grad")
           ps_step_printer1 = logging_ops.Print(global_step, [global_step], message="global step printer1 on ps")
+          num_replica_aggragate = logging_ops.Print(self._replicas_to_aggregate, [self._replicas_to_aggregate], message="num replica aggregate")
           train_ops.append(work_idx_print1)
-          train_ops.append(ps_step_printer1)         
+          train_ops.append(ps_step_printer1)
+          train_ops.append(num_replica_aggragate)         
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
