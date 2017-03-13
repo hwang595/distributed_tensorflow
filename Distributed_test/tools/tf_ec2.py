@@ -320,28 +320,28 @@ def tf_ec2_run(argv, configuration):
     def run_ssh_commands(instance, commands):
         done = False
         while not done:
-           try:
-              print("Instance %s, Running ssh commands:\n%s" % (instance.public_ip_address, "\n".join(commands)))
+#           try:
+          print("Instance %s, Running ssh commands:\n%s" % (instance.public_ip_address, "\n".join(commands)))
 
-              # Always need to exit
-              commands.append("exit")
+          # Always need to exit
+          commands.append("exit")
 
-              # Set up ssh client
-              client = connect_client(instance)
+          # Set up ssh client
+          client = connect_client(instance)
 
-              # Clear the stdout from ssh'ing in
-              # For each command perform command and read stdout
-              commandstring = "\n".join(commands)
-              stdin, stdout, stderr = client.exec_command(commandstring)
-              output = stdout.read()
+          # Clear the stdout from ssh'ing in
+          # For each command perform command and read stdout
+          commandstring = "\n".join(commands)
+          stdin, stdout, stderr = client.exec_command(commandstring)
+          output = stdout.read()
 
-              # Close down
-              stdout.close()
-              stdin.close()
-              client.close()
-              done = True
-           except:
-              done = False
+          # Close down
+          stdout.close()
+          stdin.close()
+          client.close()
+#          done = True
+#           except:
+#              done = False
         return output
 
     def run_ssh_commands_parallel(instance, commands, q):
