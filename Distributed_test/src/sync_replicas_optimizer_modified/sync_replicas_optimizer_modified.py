@@ -148,6 +148,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
   def __init__(self,
                opt,
                global_step,
+               replicas_to_aggregate,
                total_num_replicas=None,
                variable_averages=None,
                variables_to_average=None,
@@ -182,6 +183,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         total_num_replicas)
     self._n_updates = 0
     self._opt = opt
+    self._replicas_to_aggregate = replicas_to_aggregate
     self._gradients_applied = False
     self._variable_averages = variable_averages
     self._variables_to_average = variables_to_average
@@ -335,42 +337,19 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           train_ops.append(print_start_op)
+          work_idx_print = logging_ops.Print(worker_id, [worker_id], message="worker id for comp grad")
+          train_ops.append(work_idx_print)
           with ops.device(var.device):
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
-            b = tf.ones([int(num_batches_per_epoch),1], tf.float32)
-            '''
-            A = np.zeros((int(num_workers), int(num_batches_per_epoch)))
-            for i in range(A.shape[0]):
-              tf.logging.info("Logging Happens Here1!")
-              tf.logging.info(tf.slice(batch_idx_list, [i], [1])[0])              
-              if i == A.shape[0]-1:
-#                A[i][batch_idx_list[i]] = 1
-#                A[i][batch_idx_list[0]] = 1
-                A[i][int(tf.slice(batch_idx_list, [i], [1])[0])] = 1
-                A[i][int(tf.slice(batch_idx_list, [0], [1])[0])] = 1
-              else:
-                A[i][int(tf.slice(batch_idx_list, [i], [1])[0])] = 1
-                A[i][int(tf.slice(batch_idx_list, [i+1], [1])[0])] = 1
-
-            for i in range(len(batch_idx_list)):
-              element = batch_idx_list[i]
-              if element == A.shape[1]-1:
-                batch_idx_list[i] = 0
-              else:
-                batch_idx_list[i] += 1            
-#            Done computation
-            
-            for k in workers_to_kill:
-              A[k] = 0
-            '''             
+            b = tf.ones([int(num_batches_per_epoch),1], tf.float32)         
             A = matrix_to_solve
 #            A_for_calc = np.transpose(A)
             LS_solution = linalg_ops.matrix_solve_ls(A, b, fast=False)
             LS_calc = tf.reshape(LS_solution, [-1])
             weight = tf.slice(LS_calc, [worker_id], [1])
-            print_ls_op = logging_ops.Print(LS_calc, [LS_calc], message="Solution for LS!")
-            train_ops.append(print_ls_op)
+#            print_ls_op = logging_ops.Print(LS_calc, [LS_calc], message="Solution for LS!")
+#            train_ops.append(print_ls_op)
             weighted_grad = tf.scalar_mul(weight[0], grad)
             '''Kill some workers'''
             if grad is None:
@@ -393,7 +372,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 raise ValueError("Unknown grad type!")
               grad_accum = self._accumulator_list[index][0]
 
-
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
@@ -407,16 +385,20 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
+          work_idx_print1 = logging_ops.Print(worker_id, [worker_id], message="worker id for aggregate grad")
+          train_ops.append(work_idx_print1)          
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
             if collect_cdfs:
-              aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
+#              aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
+              aggregated_grad.append(grad_accum.take_grad(self._replicas_to_aggregate))
             else:
               aggregated_grad.append(grad_accum.take_grad(1))
           else:
             if collect_cdfs:
-              aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
+#              aggregated_grad.append(grad_accum.take_grad(self._total_num_replicas))
+              aggregated_grad.append(grad_accum.take_grad(self._replicas_to_aggregate))
             else:
               aggregated_grad.append(grad_accum.take_indexed_slices_grad(1))
 
@@ -459,7 +441,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                        [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id],
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
-
 
       for accum, var in self._accumulator_list:
         with ops.device(var.device):
