@@ -337,9 +337,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           train_ops.append(print_start_op)
-          work_idx_print = logging_ops.Print(worker_id, [worker_id], message="worker id for comp grad")
-          train_ops.append(work_idx_print)
           with ops.device(var.device):
+            work_idx_print = logging_ops.Print(worker_id, [worker_id], message="worker id for comp grad")
+            train_ops.append(work_idx_print)
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
             b = tf.ones([int(num_batches_per_epoch),1], tf.float32)         
@@ -449,7 +449,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   global_step, name="SetGlobalStep"))
       self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
       self._gradients_applied = True
-
+      
       return train_op
 
   def get_chief_queue_runner(self):
