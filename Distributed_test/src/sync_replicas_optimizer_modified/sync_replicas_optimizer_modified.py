@@ -380,9 +380,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 
-              num_accumulated = grad_accum.num_accumulated()
-              print_accum_len = logging_ops.Print(num_accumulated, [num_accumulated], message="Length of current accumulator")
-              train_ops.append(print_accum_len)
+            num_accumulated = grad_accum.num_accumulated()
+            print_accum_len = logging_ops.Print(num_accumulated, [num_accumulated], message="Length of current accumulator")
+            train_ops.append(print_accum_len)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
