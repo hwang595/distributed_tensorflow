@@ -338,10 +338,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           train_ops.append(print_start_op)
           with ops.device(var.device):
-            work_idx_print = logging_ops.Print(worker_id, [worker_id], message="worker id for comp grad")
+            len_in_accum = grad_accum.num_accumulated()
+            len_accum_printer0 = logging_ops.Print(len_in_accum, [len_in_accum], message="Num of grad in current accumulator")
             ps_step_printer0 = logging_ops.Print(global_step, [global_step], message="global step printer0 on ps")
-            train_ops.append(work_idx_print)
             train_ops.append(ps_step_printer0)
+            train_ops.append(len_accum_printer0)
             '''Implement LS computation and solution here'''            
             #b = np.ones(int(num_batches_per_epoch))
             b = tf.ones([int(num_batches_per_epoch),1], tf.float32)         
