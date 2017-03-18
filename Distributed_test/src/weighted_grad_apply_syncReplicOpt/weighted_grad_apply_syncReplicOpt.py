@@ -258,7 +258,10 @@ class WeightedGradsOptimizer(optimizer.Optimizer):
                 grad, local_step=self._local_step))
             aggregated_grad.append(grad_accum.take_indexed_slices_grad(
                 self._replicas_to_aggregate))
-
+          
+          num_accum = grad_accum.num_accumulated()
+          ps_step_printer = logging_ops.Print(num_accum, [num_accum, global_step], message="global step_num accu printer on ps")
+          train_ops.append(ps_step_printer)
           self._accumulator_list.append((grad_accum, var.device))
 
       aggregated_grads_and_vars = zip(aggregated_grad, var_list)
