@@ -32,7 +32,7 @@ cfg = Cfg({
     "n_workers" : 8,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "9",
+    "num_replicas_to_aggregate" : "5",
 
     "method" : "reserved",
 
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "8192",
+    "batch_size" : "256",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
