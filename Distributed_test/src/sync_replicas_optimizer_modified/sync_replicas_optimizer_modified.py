@@ -359,6 +359,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               grad_accum = self._accumulator_list[index][0]
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
+                  num_accumulated = grad_accum.num_accumulated()
+                  print_accum_len0 = logging_ops.Print(num_accumulated, [num_accumulated, worker_id], message="Length of current accumulator")
+                  train_ops.append(print_accum_len0)
                   apply_grad_op = grad_accum.apply_grad(grad,
 #                  apply_grad_op = grad_accum.apply_grad(weighted_grad,
                                                         local_step=self._local_step._ref())
@@ -375,13 +378,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 with tf.device("job:worker/task:%d" % worker_id):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
                     grad, local_step=self._local_step._ref())
+                  num_accumulated = grad_accum.num_accumulated()
+                  print_accum_len1 = logging_ops.Print(num_accumulated, [num_accumulated, worker_id], message="Length of current accumulator")
+                  train_ops.append(print_accum_len1)
 #                    weighted_grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-            num_accumulated = grad_accum.num_accumulated()
-            print_accum_len = logging_ops.Print(num_accumulated, [num_accumulated, worker_id], message="Length of current accumulator")
-            train_ops.append(print_accum_len)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
