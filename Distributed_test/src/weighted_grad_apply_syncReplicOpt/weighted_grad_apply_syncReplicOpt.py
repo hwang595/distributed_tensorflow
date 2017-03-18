@@ -32,6 +32,7 @@ from tensorflow.python.training import optimizer
 from tensorflow.python.training import queue_runner
 from tensorflow.python.training import session_manager
 from tensorflow.python.training import session_run_hook
+from tensorflow.python.ops import logging_ops
 
 FLAGS = tf.app.flags.FLAGS
 
