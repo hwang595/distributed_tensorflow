@@ -32,7 +32,7 @@ cfg = Cfg({
     "n_workers" : 7,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "3",
+    "num_replicas_to_aggregate" : "5",
 
     "method" : "reserved",
 
