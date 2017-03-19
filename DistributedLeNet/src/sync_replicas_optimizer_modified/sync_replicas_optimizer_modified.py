@@ -199,7 +199,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     self._sync_token_queues = [0] * self._total_num_replicas
     for worker in range(self._total_num_replicas):
       with ops.device(global_step.device):
-        tf.tf_logging.info("What's the device?: %s" % str(global_step.device))
+        tf.logging.info("What's the device?: %s" % str(global_step.device))
         self._sync_token_queues[worker] = data_flow_ops.FIFOQueue(-1,
                                                                   global_step.dtype.base_dtype,
                                                                   shapes=(),
