@@ -341,7 +341,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           train_ops.append(print_start_op)
           with ops.device(var.device):
             self._counter += 1
-            counter_printer = logging_ops.Print(global_step, [counter_printer], message="Test for the counter")
+            counter_printer = logging_ops.Print(global_step, [self._counter], message="Test for the counter")
             train_ops.append(counter_printer)
             if grad is None:
               continue
