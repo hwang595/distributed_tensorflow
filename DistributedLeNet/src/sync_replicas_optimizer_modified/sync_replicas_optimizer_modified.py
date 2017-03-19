@@ -336,6 +336,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
               with ops.control_dependencies([print_start_op]):               
                 with tf.device("job:worker/task:%d" % worker_id):
+                  apply_grad_op = grad_accum.apply_grad(grad,
+                                                        local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
                     accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
