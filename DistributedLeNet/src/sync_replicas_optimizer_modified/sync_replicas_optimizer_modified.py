@@ -192,14 +192,14 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # Remember which accumulator is on which device to set the initial step in
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
+    with ops.device(global_step.device):
+      self._worker_list = []
     self._accumulator_list = []
-    self._worker_list = []
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
     for worker in range(self._total_num_replicas):
       with ops.device(global_step.device):
-        tf.logging.info("What's the device?: %s" % str(global_step.device))
         self._sync_token_queues[worker] = data_flow_ops.FIFOQueue(-1,
                                                                   global_step.dtype.base_dtype,
                                                                   shapes=(),
@@ -347,7 +347,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           message="Accum aggregated status")
                     train_ops.append(accum_sizes_printer)'''
                     worker_id_list_printer = logging_ops.Print(global_step,
-                          [self._worker_list] + [worker_id] + [global_step],
+                          [len(self._worker_list)] + [worker_id] + [global_step],
                           message="Worker ID list status")
                     train_ops.append(worker_id_list_printer)
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
@@ -368,7 +368,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           message="Accum aggregated status")
                     train_ops.append(accum_sizes_printer_parse)'''
                     worker_id_list_printer_sparse = logging_ops.Print(global_step,
-                          [self._worker_list] + [worker_id] + [global_step],
+                          [len(self._worker_list)] + [worker_id] + [global_step],
                           message="Worker ID list status")
                     train_ops.append(worker_id_list_printer_sparse)                    
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
