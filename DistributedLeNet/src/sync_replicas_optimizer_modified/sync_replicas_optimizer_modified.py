@@ -330,6 +330,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
+            var_device_printer = logging_ops.Print(global_step, [var.device], message="which device on earth this is?")
+            train_ops.append(var_device_printer)
             self._worker_list.append(worker_id)
             if grad is None:
               continue
@@ -346,10 +348,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
                     train_ops.append(accum_sizes_printer)'''
-                    worker_id_list_printer = logging_ops.Print(global_step,
-                          [len(self._worker_list)] + [worker_id] + [global_step],
-                          message="Worker ID list status")
-                    train_ops.append(worker_id_list_printer)
+#                    worker_id_list_printer = logging_ops.Print(global_step,
+#                          [len(self._worker_list)] + [worker_id] + [global_step],
+#                          message="Worker ID list status")
+#                    train_ops.append(worker_id_list_printer)
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 
@@ -367,10 +369,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
                     train_ops.append(accum_sizes_printer_parse)'''
-                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
-                          [len(self._worker_list)] + [worker_id] + [global_step],
-                          message="Worker ID list status")
-                    train_ops.append(worker_id_list_printer_sparse)                    
+#                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
+#                          [len(self._worker_list)] + [worker_id] + [global_step],
+#                          message="Worker ID list status")
+#                    train_ops.append(worker_id_list_printer_sparse)                    
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 #            accum_sizes_printer = logging_ops.Print(global_step,
@@ -381,13 +383,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
+          worker_id_list_printer = logging_ops.Print(global_step,
+                          [self._worker_list] + [worker_id] + [global_step],
+                          message="Worker ID list status")
+          train_ops.append(worker_id_list_printer)
           grad_accum = self._accumulator_list[index][0]
-
-#          accum_sizes_printer = logging_ops.Print(global_step,
-#                                                [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-#                                               message="Accum aggregated status")
-#          train_ops.append(accum_sizes_printer)
-
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
