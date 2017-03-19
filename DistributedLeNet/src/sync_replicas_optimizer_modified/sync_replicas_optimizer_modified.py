@@ -334,12 +334,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             elif isinstance(grad, ops.Tensor):
               grad_accum = self._accumulator_list[index][0]
 
-              with ops.control_dependencies([print_start_op]):
-                accum_sizes_printer = logging_ops.Print(global_step,
+              with ops.control_dependencies([print_start_op]):               
+                with tf.device("job:worker/task:%d" % worker_id):
+                  accum_sizes_printer = logging_ops.Print(global_step,
                     [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                     message="Accum aggregated status")
-                train_ops.append(accum_sizes_printer)                
-                with tf.device("job:worker/task:%d" % worker_id):
+                  train_ops.append(accum_sizes_printer) 
                   apply_grad_op = grad_accum.apply_grad(grad,
                                                         local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
@@ -356,11 +356,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               grad_accum = self._accumulator_list[index][0]
 
               with ops.control_dependencies([print_start_op]):
-                accum_sizes_printer_parse = logging_ops.Print(global_step,
+                with tf.device("job:worker/task:%d" % worker_id):
+                  accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                train_ops.append(accum_sizes_printer_parse)
-                with tf.device("job:worker/task:%d" % worker_id):
+                  train_ops.append(accum_sizes_printer_parse)
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
                     grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
