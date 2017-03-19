@@ -289,6 +289,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
         with ops.device(var.device):
+          device_printer = var.device
+          print_start_op = logging_ops.Print(global_step, [device_printer], message="device on variables")
+          train_ops.append(print_start_op)
           if grad is None:
             continue
           elif isinstance(grad, ops.Tensor):
@@ -301,7 +304,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               raise ValueError("Unknown grad type!")
             grad_accum = data_flow_ops.SparseConditionalAccumulator(
               grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
-
           self._accumulator_list.append((grad_accum, var))
 
       """# Phase 1 gradient computation
@@ -330,8 +332,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
-            worker_list = []
-            worker_list.append(worker_id)
             if grad is None:
               continue
 
