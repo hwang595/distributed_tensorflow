@@ -316,7 +316,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   [a for a in worker_idx_list] + [worker_id] + [global_step],
                   message="Worker ID list status")
         train_ops.append(worker_id_list_printer)
-        counter_printer = logging_ops.Print(global_step, [counter], message="Test for the counter")
+        counter_printer = logging_ops.Print(global_step, [worker_counter], message="Test for the counter")
         train_ops.append(counter_printer)
 
       """# Phase 1 gradient computation
