@@ -193,7 +193,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     with ops.device(global_step.device):
-      self._worker_list = []
+      print("Hahahahahahahahahaahahahahahahahahhaha!!!!!!!!!!!!!!!!!!")
+      self._worker_idx_list = [0] * self._total_num_replicas
+      self._counter = 0
     self._accumulator_list = []
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
@@ -264,6 +266,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     aggregated_grad = []
     var_list = []
 
+    with ops.device(global_step.device):
+      self._worker_idx_list[worker_id] = worker_id
+      worker_id_list_printer = logging_ops.Print(global_step,
+                  [self._worker_idx_list] + [worker_id] + [global_step],
+                  message="Worker ID list status")
+      train_ops.append(worker_id_list_printer)
+
     self._local_step = variables.Variable(
         initial_value=0,
         trainable=False,
@@ -329,10 +338,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       with ops.control_dependencies([update_local_step_op]):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
+          train_ops.append(print_start_op)
           with ops.device(var.device):
-            var_device_printer = logging_ops.Print(global_step, [var.device], message="which device on earth this is?")
-            train_ops.append(var_device_printer)
-            self._worker_list.append(worker_id)
+            self._counter += 1
+            counter_printer = logging_ops.Print(global_step, [counter_printer], message="Test for the counter")
+            train_ops.append(counter_printer)
             if grad is None:
               continue
 
@@ -383,10 +393,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
-          worker_id_list_printer = logging_ops.Print(global_step,
-                          [self._worker_list] + [worker_id] + [global_step],
-                          message="Worker ID list status")
-          train_ops.append(worker_id_list_printer)
           grad_accum = self._accumulator_list[index][0]
           if grad is None:
             aggregated_grad.append(None)
