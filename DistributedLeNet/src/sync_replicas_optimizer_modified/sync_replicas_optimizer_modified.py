@@ -290,8 +290,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # Gradient accum creation
     with ops.name_scope(None, self._name):
       worker_idx_list = []
-      for idx in range(self._total_num_replicas):
-        self._worker_idx_list.append([0])
       worker_counter = 0
       for grad, var in grads_and_vars:
         var_list.append(var)
