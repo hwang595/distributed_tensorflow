@@ -38,7 +38,6 @@ from tensorflow.python.training import queue_runner
 tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
 
 FLAGS = tf.app.flags.FLAGS
-worker_list = []
 # Please note that the gradients from replicas are averaged instead of summed
 # (as in the old sync_replicas_optimizer) so you need to increase the learning
 # rate according to the number of replicas. This change is introduced to be
@@ -335,6 +334,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
             elif isinstance(grad, ops.Tensor):
               grad_accum = self._accumulator_list[index][0]
+              num_accum = grad_accum.num_accumulated()
+              tf.logging.info("Grad Accumed %s, Worker ID: %s" % (str(num_accum), str(worker_id)))
 
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
@@ -359,9 +360,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             accum_sizes_printer = logging_ops.Print(global_step,
                                                  [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                  message="Accum aggregated status")
-            worker_list_printer = logging_ops.Print(global_step, [worker_list], message="worker id list on parameter server")
             train_ops.append(accum_sizes_printer)
-            train_ops.append(worker_list_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
