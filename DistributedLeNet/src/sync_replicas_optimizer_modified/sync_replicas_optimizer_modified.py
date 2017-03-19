@@ -194,7 +194,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     self._accumulator_list = []
-    self._worker_list = []
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -331,7 +330,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
-            self._worker_list.append(worker_id)
+            worker_list = []
+            worker_list.append(worker_id)
             if grad is None:
               continue
 
@@ -351,7 +351,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 raise ValueError("Unknown grad type!")
               grad_accum = self._accumulator_list[index][0]
 
-
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
@@ -362,7 +361,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             accum_sizes_printer = logging_ops.Print(global_step,
                                                  [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                  message="Accum aggregated status")
-            worker_list_printer = logging_ops.Print(global_step, [self._worker_list], message="worker_list on ps")
+            worker_list_printer = logging_ops.Print(global_step, [worker_list], message="worker_list on ps")
             train_ops.append(accum_sizes_printer)
             train_ops.append(worker_list_printer)
 
@@ -422,7 +421,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                        [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id],
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
-
 
       for accum, var in self._accumulator_list:
         with ops.device(var.device):
