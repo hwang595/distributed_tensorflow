@@ -423,7 +423,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         with ops.control_dependencies(train_ops):
           # Worker finished applying gradients. Add token to phase1_finished_queue
           train_op = logging_ops.Print(self._local_step._ref(),
-                                       [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id],
+                                       [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
 
