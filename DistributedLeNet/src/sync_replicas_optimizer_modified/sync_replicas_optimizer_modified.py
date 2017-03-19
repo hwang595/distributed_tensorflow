@@ -193,8 +193,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     with ops.device(global_step.device):
-      print("Hahahahahahahahahaahahahahahahahahhaha!!!!!!!!!!!!!!!!!!")
-      self._worker_idx_list = [0] * self._total_num_replicas
+      self._worker_idx_list = []
+      for idx in range(self._total_num_replicas):
+        self._worker_idx_list.append([0])
       self._counter = 0
     self._accumulator_list = []
     # For timeout, we have one token queue per worker. This makes it so that
@@ -267,9 +268,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     var_list = []
 
     with ops.device(global_step.device):
-      self._worker_idx_list[worker_id] = worker_id
+      self._worker_idx_list[worker_id] = [worker_id]
       worker_id_list_printer = logging_ops.Print(global_step,
-                  [self._worker_idx_list] + [worker_id] + [global_step],
+                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
                   message="Worker ID list status")
       train_ops.append(worker_id_list_printer)
 
