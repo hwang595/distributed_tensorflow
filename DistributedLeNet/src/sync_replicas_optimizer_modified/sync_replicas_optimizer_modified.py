@@ -38,7 +38,7 @@ from tensorflow.python.training import queue_runner
 tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
 
 FLAGS = tf.app.flags.FLAGS
-
+worker_list = []
 # Please note that the gradients from replicas are averaged instead of summed
 # (as in the old sync_replicas_optimizer) so you need to increase the learning
 # rate according to the number of replicas. This change is introduced to be
@@ -289,7 +289,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
         with ops.device(var.device):
-          worker_list = []
           if grad is None:
             continue
           elif isinstance(grad, ops.Tensor):
