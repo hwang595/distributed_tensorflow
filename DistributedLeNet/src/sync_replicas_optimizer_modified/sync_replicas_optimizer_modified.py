@@ -289,9 +289,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
         with ops.device(var.device):
-          device_printer = var.device
-          print_start_op = logging_ops.Print(global_step, [device_printer], message="device on variables")
-          train_ops.append(print_start_op)
+          worker_list = []
           if grad is None:
             continue
           elif isinstance(grad, ops.Tensor):
@@ -332,6 +330,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           with ops.device(var.device):
+            worker_list.append(worker_id)
             if grad is None:
               continue
 
@@ -361,7 +360,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             accum_sizes_printer = logging_ops.Print(global_step,
                                                  [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                  message="Accum aggregated status")
+            worker_list_printer = logging_ops.Print(global_step, [worker_list], message="worker id list on parameter server")
             train_ops.append(accum_sizes_printer)
+            train_ops.append(worker_list_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
