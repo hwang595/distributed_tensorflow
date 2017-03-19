@@ -192,11 +192,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # Remember which accumulator is on which device to set the initial step in
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
-    with ops.device(global_step.device):
-      self._worker_idx_list = []
-      for idx in range(self._total_num_replicas):
-        self._worker_idx_list.append([0])
-      self._counter = 0
     self._accumulator_list = []
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
@@ -267,8 +262,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     aggregated_grad = []
     var_list = []
 
-    with ops.device(global_step.device):
-      self._worker_idx_list[worker_id] = [worker_id]
 #      worker_id_list_printer = logging_ops.Print(global_step,
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
 #                  message="Worker ID list status")
@@ -296,6 +289,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     # Gradient accum creation
     with ops.name_scope(None, self._name):
+      worker_idx_list = []
+      for idx in range(self._total_num_replicas):
+        self._worker_idx_list.append([0])
+      worker_counter = 0
       for grad, var in grads_and_vars:
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
@@ -313,6 +310,16 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             grad_accum = data_flow_ops.SparseConditionalAccumulator(
               grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
           self._accumulator_list.append((grad_accum, var))
+
+      with ops.device(global_step.device):
+        worker_idx_list.append(worker_id)
+        worker_counter += 1
+        worker_id_list_printer = logging_ops.Print(global_step,
+                  [a for a in worker_idx_list] + [worker_id] + [global_step],
+                  message="Worker ID list status")
+        train_ops.append(worker_id_list_printer)
+        counter_printer = logging_ops.Print(global_step, [counter], message="Test for the counter")
+        train_ops.append(counter_printer)
 
       """# Phase 1 gradient computation
       with ops.control_dependencies([update_local_step_op]):
@@ -341,9 +348,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
           train_ops.append(print_start_op)
           with ops.device(var.device):
-            self._counter += 1
-            counter_printer = logging_ops.Print(global_step, [self._counter], message="Test for the counter")
-            train_ops.append(counter_printer)
             if grad is None:
               continue
 
@@ -394,10 +398,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
-          worker_id_list_printer = logging_ops.Print(global_step,
-                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
-                  message="Worker ID list status")
-          train_ops.append(worker_id_list_printer)
           grad_accum = self._accumulator_list[index][0]
           if grad is None:
             aggregated_grad.append(None)
