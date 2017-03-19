@@ -334,7 +334,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             elif isinstance(grad, ops.Tensor):
               grad_accum = self._accumulator_list[index][0]
               num_accum = grad_accum.num_accumulated()
-              tf.logging.info("Grad Accumed %s, Worker ID: %s" % (str(num_accum), str(worker_id)))
+
 
               with ops.control_dependencies([print_start_op]):
                 with tf.device("job:worker/task:%d" % worker_id):
@@ -356,15 +356,21 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-            accum_sizes_printer = logging_ops.Print(global_step,
-                                                 [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-                                                 message="Accum aggregated status")
-            train_ops.append(accum_sizes_printer)
+#            accum_sizes_printer = logging_ops.Print(global_step,
+#                                                 [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+#                                                 message="Accum aggregated status")
+#            train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
+
+          accum_sizes_printer = logging_ops.Print(global_step,
+                                                [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                                               message="Accum aggregated status")
+          train_ops.append(accum_sizes_printer)
+
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
