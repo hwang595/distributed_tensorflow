@@ -339,6 +339,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   apply_grad_op = grad_accum.apply_grad(grad,
                                                         local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
+                    accum_sizes_printer = logging_ops.Print(global_step,
+                          [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                          message="Accum aggregated status")
+                    train_ops.append(accum_sizes_printer)
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 
@@ -352,17 +356,16 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
                     grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
+                    accum_sizes_printer_parse = logging_ops.Print(global_step,
+                          [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                          message="Accum aggregated status")
+                    train_ops.append(accum_sizes_printer_parse)
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 #            accum_sizes_printer = logging_ops.Print(global_step,
 #                                                 [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
 #                                                 message="Accum aggregated status")
 #            train_ops.append(accum_sizes_printer)
-
-      accum_sizes_printer = logging_ops.Print(global_step,
-                              [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-                              message="Accum aggregated status----Outside")
-      train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
