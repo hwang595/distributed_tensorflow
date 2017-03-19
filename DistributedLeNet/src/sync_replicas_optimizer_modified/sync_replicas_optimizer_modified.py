@@ -341,10 +341,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-                  accum_sizes_printer0 = logging_ops.Print(global_step,
-                                                [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-                                                message="Accum aggregated status")
-                  train_ops.append(accum_sizes_printer0)
 
             else:
               if not isinstance(grad, ops.IndexedSlices):
@@ -358,14 +354,15 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   with ops.control_dependencies([apply_grad_op]):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-                  accum_sizes_printer1 = logging_ops.Print(global_step,
-                                          [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-                                          message="Accum aggregated status")
-                  train_ops.append(accum_sizes_printer1)
 #            accum_sizes_printer = logging_ops.Print(global_step,
 #                                                 [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
 #                                                 message="Accum aggregated status")
 #            train_ops.append(accum_sizes_printer)
+
+      accum_sizes_printer = logging_ops.Print(global_step,
+                              [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                              message="Accum aggregated status----Outside")
+      train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
