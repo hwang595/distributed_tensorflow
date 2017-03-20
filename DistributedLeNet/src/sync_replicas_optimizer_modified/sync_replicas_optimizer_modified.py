@@ -408,7 +408,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             accum_sizes_printer = logging_ops.Print(global_step,
                                                  [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                  message="Accum aggregated status on ps")
-              train_ops.append(accum_sizes_printer)
+            train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
