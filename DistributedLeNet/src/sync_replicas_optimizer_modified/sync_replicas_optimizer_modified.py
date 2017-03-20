@@ -357,10 +357,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   apply_grad_op = grad_accum.apply_grad(grad,
                                                         local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
-                    '''accum_sizes_printer = logging_ops.Print(global_step,
+                    accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    train_ops.append(accum_sizes_printer)'''
+                    train_ops.append(accum_sizes_printer)
 #                    worker_id_list_printer = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
 #                          message="Worker ID list status")
@@ -378,10 +378,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
                     grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
-                    '''accum_sizes_printer_parse = logging_ops.Print(global_step,
+                    accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    train_ops.append(accum_sizes_printer_parse)'''
+                    train_ops.append(accum_sizes_printer_parse)
 #                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
 #                          message="Worker ID list status")
