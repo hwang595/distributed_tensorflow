@@ -360,6 +360,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
+                    if all(x[0].num_accumulated() >= 1 for x in self._accumulator_list):
+                      notification_printer = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
+                      train_ops.append(notification_printer)
+                    else:
+                      notification_printer = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                      train_ops.append(notification_printer)
                     train_ops.append(accum_sizes_printer)
 #                    worker_id_list_printer = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
@@ -381,6 +387,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
+                    if all(x[0].num_accumulated() >= 1 for x in self._accumulator_list):
+                      notification_printer_sparse = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
+                      train_ops.append(notification_printer_sparse)
+                    else:
+                      notification_printer_sparse = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                      train_ops.append(notification_printer_sparse)                      
                     train_ops.append(accum_sizes_printer_parse)
 #                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
@@ -395,14 +407,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
       # Phase 2 gradient applying
       with ops.device(global_step.device):
-        accum_sizes_printer_ps = logging_ops.Print(global_step,
-            [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
-            message="Accum aggregated status on parameter server")
-        train_ops.append(accum_sizes_printer_ps)
-
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
+          num_accum = grad_accum.num_accumulated()
+          num_accum_printer = logging_ops.Print(global_step, [num_accum], message="Num accumed on each accumulators")
+          train_ops.append(num_accum_printer)
           if grad is None:
             aggregated_grad.append(None)
           elif isinstance(grad, ops.Tensor):
