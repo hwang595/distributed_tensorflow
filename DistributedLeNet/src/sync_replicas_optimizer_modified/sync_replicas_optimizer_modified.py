@@ -406,7 +406,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 #            train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
-      with ops.device(global_step.device):
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
