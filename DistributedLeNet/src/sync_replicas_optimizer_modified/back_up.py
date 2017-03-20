@@ -193,7 +193,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     self._accumulator_list = []
-    self._constant_for_comparison = 2
+    self._constant_for_comparison = 1
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -290,7 +290,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     # Gradient accum creation
     with ops.name_scope(None, self._name):
-      should_stop_list = []
+      worker_idx_list = []
+      worker_counter = 0
       for grad, var in grads_and_vars:
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
@@ -308,7 +309,16 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             grad_accum = data_flow_ops.SparseConditionalAccumulator(
               grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
           self._accumulator_list.append((grad_accum, var))
-          should_stop_list.append('0')
+
+      with ops.device(global_step.device):
+        worker_idx_list.append(worker_id)
+        worker_counter += 1
+        worker_id_list_printer = logging_ops.Print(global_step,
+                  [a for a in worker_idx_list] + [worker_id] + [global_step],
+                  message="Worker ID list status")
+        train_ops.append(worker_id_list_printer)
+        counter_printer = logging_ops.Print(global_step, [worker_counter], message="Test for the counter")
+        train_ops.append(counter_printer)
 
       """# Phase 1 gradient computation
       with ops.control_dependencies([update_local_step_op]):
@@ -348,6 +358,21 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   apply_grad_op = grad_accum.apply_grad(grad,
                                                         local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):
+                    accum_sizes_printer = logging_ops.Print(global_step,
+                          [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                          message="Accum aggregated status")
+                    ret = tf.cond(tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison),
+                           lambda: tf.constant(1), lambda: tf.constant(0))
+                    notification_printer = logging_ops.Print(global_step, [ret], message="should stop notification")
+                    train_ops.append(notification_printer)
+                    '''else:
+                      notification_printer = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                      train_ops.append(notification_printer)'''
+                    train_ops.append(accum_sizes_printer)
+#                    worker_id_list_printer = logging_ops.Print(global_step,
+#                          [len(self._worker_list)] + [worker_id] + [global_step],
+#                          message="Worker ID list status")
+#                    train_ops.append(worker_id_list_printer)
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
 
@@ -360,7 +385,22 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 with tf.device("job:worker/task:%d" % worker_id):
                   apply_grad_op = grad_accum.apply_indexed_slices_grad(
                     grad, local_step=self._local_step._ref())
-                  with ops.control_dependencies([apply_grad_op]):                  
+                  with ops.control_dependencies([apply_grad_op]):
+                    accum_sizes_printer_parse = logging_ops.Print(global_step,
+                          [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                          message="Accum aggregated status")
+                    ret_sparse = tf.cond(tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison),
+                                  lambda: tf.constant(1), lambda: tf.constant(0))
+                    notification_printer_sparse = logging_ops.Print(global_step, [ret_sparse], message="should stop notification")
+                    train_ops.append(notification_printer_sparse)
+                    #else:
+                    #  notification_printer_sparse = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                    #  train_ops.append(notification_printer_sparse)                      
+                    train_ops.append(accum_sizes_printer_parse)
+#                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
+#                          [len(self._worker_list)] + [worker_id] + [global_step],
+#                          message="Worker ID list status")
+#                    train_ops.append(worker_id_list_printer_sparse)                    
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)         
             with ops.control_dependencies([apply_grad_op]):          
@@ -368,16 +408,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)
-              for x_idx in range(len(self._accumulator_list)):
-                x = self._accumulator_list[x_idx]
-                ret = tf.cond(tf.greater(x[0].num_accumulated(), self._constant_for_comparison),
-                                  lambda: tf.constant(1), lambda: tf.constant(0))
-                if ret == 1:
-                  should_stop_list[x_idx] = '1'
-              should_stop_list_printer = logging_ops.Print(global_step,
-                                                 [y for y in should_stop_list] + [global_step],
-                                                 message="Should stop list status on ps")
-              train_ops.append(should_stop_list_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
