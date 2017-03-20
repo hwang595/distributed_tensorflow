@@ -361,12 +361,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if all(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]):
-                      notification_printer = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
-                      train_ops.append(notification_printer)
-                    else:
-                      notification_printer = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
-                      train_ops.append(notification_printer)
+                    ret = tf.cond(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]
+                      , lambda: tf.constant(0), lambda: tf.constant(1))
+                     # notification_printer = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
+                     # train_ops.append(notification_printer)
+                    #else:
+                    #  notification_printer = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                    #  train_ops.append(notification_printer)
                     train_ops.append(accum_sizes_printer)
 #                    worker_id_list_printer = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
@@ -388,12 +389,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if all(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]):
-                      notification_printer_sparse = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
-                      train_ops.append(notification_printer_sparse)
-                    else:
-                      notification_printer_sparse = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
-                      train_ops.append(notification_printer_sparse)                      
+                    ret_sparse = tf.cond(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]
+                      , lambda: tf.constant(0), lambda: tf.constant(1))
+                    #  notification_printer_sparse = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
+                    #  train_ops.append(notification_printer_sparse)
+                    #else:
+                    #  notification_printer_sparse = logging_ops.Print(global_step, ["shouldn't stop"], message="shouldn't stop notification")
+                    #  train_ops.append(notification_printer_sparse)                      
                     train_ops.append(accum_sizes_printer_parse)
 #                    worker_id_list_printer_sparse = logging_ops.Print(global_step,
 #                          [len(self._worker_list)] + [worker_id] + [global_step],
