@@ -394,6 +394,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 #            train_ops.append(accum_sizes_printer)
 
       # Phase 2 gradient applying
+      with ops.device(global_step.device):
+        accum_sizes_printer_ps = logging_ops.Print(global_step,
+            [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+            message="Accum aggregated status on parameter server")
+            train_ops.append(accum_sizes_printer_ps)
+
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.device(var.device):
           grad_accum = self._accumulator_list[index][0]
