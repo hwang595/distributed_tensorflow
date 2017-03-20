@@ -375,7 +375,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 if ret == 1:
                   should_stop_list[x_idx] = '1'
                 should_stop_list_printer = logging_ops.Print(global_step,
-                                                   [ret] + [global_step],
+                                                   [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
                 train_ops.append(should_stop_list_printer)
 
