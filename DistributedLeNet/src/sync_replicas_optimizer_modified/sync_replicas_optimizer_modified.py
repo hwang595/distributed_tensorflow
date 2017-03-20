@@ -193,7 +193,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     self._accumulator_list = []
-    self._constant_for_comparison = 2
+    self._constant_for_comparison = 1
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -362,7 +362,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
                     ret = tf.cond(tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison),
-                           lambda: tf.constant(0), lambda: tf.constant(1))
+                           lambda: tf.constant(1), lambda: tf.constant(0))
                     notification_printer = logging_ops.Print(global_step, [ret], message="should stop notification")
                     train_ops.append(notification_printer)
                     '''else:
@@ -390,7 +390,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
                     ret_sparse = tf.cond(tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison),
-                                  lambda: tf.constant(0), lambda: tf.constant(1))
+                                  lambda: tf.constant(1), lambda: tf.constant(0))
                     notification_printer_sparse = logging_ops.Print(global_step, [ret_sparse], message="should stop notification")
                     train_ops.append(notification_printer_sparse)
                     #else:
