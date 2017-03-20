@@ -361,7 +361,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if tf.greater(self._accumulator_list[0][0], self._constant_for_comparison):
+                    if tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison):
                       notification_printer = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
                       train_ops.append(notification_printer)
                     else:
@@ -388,7 +388,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if tf.greater(self._accumulator_list[0][0], self._constant_for_comparison):
+                    if tf.greater(self._accumulator_list[0][0].num_accumulated(), self._constant_for_comparison):
                       notification_printer_sparse = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
                       train_ops.append(notification_printer_sparse)
                     else:
