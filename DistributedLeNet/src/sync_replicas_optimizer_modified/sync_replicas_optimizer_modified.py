@@ -193,6 +193,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     self._accumulator_list = []
+    self._constant_for_comparison = 2
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -360,7 +361,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if all(a >= 1 for a in [x[0].num_accumulated() for x in self._accumulator_list]):
+                    if all(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]):
                       notification_printer = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
                       train_ops.append(notification_printer)
                     else:
@@ -387,7 +388,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     accum_sizes_printer_parse = logging_ops.Print(global_step,
                           [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                           message="Accum aggregated status")
-                    if all(a >= 1 for a in [x[0].num_accumulated() for x in self._accumulator_list]):
+                    if all(tf.greater(a, self._constant_for_comparison) for a in [x[0].num_accumulated() for x in self._accumulator_list]):
                       notification_printer_sparse = logging_ops.Print(global_step, ["should stop"], message="should stop notification")
                       train_ops.append(notification_printer_sparse)
                     else:
