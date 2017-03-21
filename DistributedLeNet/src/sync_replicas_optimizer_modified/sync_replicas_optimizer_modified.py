@@ -43,13 +43,6 @@ FLAGS = tf.app.flags.FLAGS
 # rate according to the number of replicas. This change is introduced to be
 # consistent with how gradients are aggregated (averaged) within a batch in a
 # replica.
-def f_pos(should_stop_list, x_idx):
-  should_stop_list[x_idx] = '1'
-  return should_stop_list
-
-def f_neg(should_stop_list):
-  return should_stop_list
-
 class TimeoutReplicasOptimizer(optimizer.Optimizer):
   """Class to synchronize, aggregate gradients and pass them to the optimizer.
   In a typical asynchronous training environment, it's common to have some
@@ -377,8 +370,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(accum_sizes_printer)
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
-                should_stop_list = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            f_pos(should_stop_list, x_idx), f_neg(should_stop_list))
+                ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
+                                            lambda: tf.constant(1), lambda: tf.constant(0))
+                if tf.equal(ret, tf.constant(1)):
+                  test_cond_printer = logging_ops.Print(global_step,
+                                                   [global_step],
+                                                   message="Seeing this means cond works")
+                  train_ops.append(test_cond_printer)
 
                 should_stop_list_printer = logging_ops.Print(global_step,
                                                    [y for y in should_stop_list] + [global_step],
