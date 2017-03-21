@@ -376,7 +376,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            lambda:fn1(x_idx), fn2(x_idx))
+                                            lambda:fn1(x_idx), lambda:fn2(x_idx))
                 '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
