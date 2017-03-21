@@ -371,17 +371,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            lambda: tf.constant(1), lambda: tf.constant(0))
-                if tf.equal(ret, tf.constant(1)):
-                  test_cond_printer = logging_ops.Print(global_step,
-                                                   [global_step],
-                                                   message="Seeing this means cond works")
-                  train_ops.append(test_cond_printer)
-
-                should_stop_list_printer = logging_ops.Print(global_step,
+                                            lambda: should_stop_list[x_idx] = '1', lambda: should_stop_list[x_idx]=should_stop_list[x_idx])
+              should_stop_list_printer = logging_ops.Print(global_step,
                                                    [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
-                train_ops.append(should_stop_list_printer)
+              train_ops.append(should_stop_list_printer)
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
