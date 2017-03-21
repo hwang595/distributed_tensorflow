@@ -389,10 +389,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
+              '''
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [should_stop_list],
                                                    message="Should stop list status on ps")
               train_ops.append(should_stop_list_printer)
+              '''
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
