@@ -43,6 +43,13 @@ FLAGS = tf.app.flags.FLAGS
 # rate according to the number of replicas. This change is introduced to be
 # consistent with how gradients are aggregated (averaged) within a batch in a
 # replica.
+def f_pos(should_stop_list, x_idx):
+  should_stop_list[x_idx] = '1'
+  return should_stop_list
+
+def f_neg(should_stop_list):
+  return should_stop_list
+
 class TimeoutReplicasOptimizer(optimizer.Optimizer):
   """Class to synchronize, aggregate gradients and pass them to the optimizer.
   In a typical asynchronous training environment, it's common to have some
@@ -521,10 +528,3 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         init_tokens.append(init_tokens_op)
 
     return init_tokens
-
-  def f_pos(self, should_stop_list, x_idx):
-    should_stop_list[x_idx] = '1'
-    return should_stop_list
-
-  def f_neg(self, should_stop_list):
-    return should_stop_list
