@@ -29,10 +29,10 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 8,
+    "n_workers" : 3,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "9",
+    "num_replicas_to_aggregate" : "5",
 
     "method" : "reserved",
 
@@ -41,10 +41,10 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.xlarge",
-    "worker_type" : "t2.xlarge",
-    "ps_type" : "t2.xlarge",
-    "evaluator_type" : "t2.xlarge",
+    "master_type" : "t2.large",
+    "worker_type" : "t2.large",
+    "ps_type" : "t2.large",
+    "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "1024",
+    "batch_size" : "128",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
