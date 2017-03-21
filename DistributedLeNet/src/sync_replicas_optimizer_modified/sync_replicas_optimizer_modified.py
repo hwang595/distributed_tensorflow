@@ -291,6 +291,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # Gradient accum creation
     with ops.name_scope(None, self._name):
       should_stop_list = []
+      should_stop_counter = 0
       for grad, var in grads_and_vars:
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
@@ -371,7 +372,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            lambda: should_stop_list[x_idx] = '1', lambda: should_stop_list[x_idx]=should_stop_list[x_idx])
+                                            lambda: '1', lambda: '0')
+                if ret == '1':
+                  test_cond_printer = logging_ops.Print(global_step,
+                                        [global_step],
+                                        message="Seeing this means cond ops works")
+                  train_ops.append(test_cond_printer)
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
