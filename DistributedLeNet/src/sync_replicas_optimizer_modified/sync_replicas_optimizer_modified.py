@@ -390,7 +390,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
               should_stop_list_printer = logging_ops.Print(global_step,
-                                                   [should_stop_list] + [global_step],
+                                                   should_stop_list,
                                                    message="Should stop list status on ps")
               train_ops.append(should_stop_list_printer)
 
