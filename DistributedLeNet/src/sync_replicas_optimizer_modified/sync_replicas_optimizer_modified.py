@@ -371,7 +371,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(accum_sizes_printer)
               
               def fn1(should_stop_list, x_idx, shape):
-                indices = tf.constant([x_idx])
+                indices = tf.constant([[x_idx]])
                 updates = tf.constant([1])
                 shape = tf.constant([shape])
                 scatter = tf.scatter_nd(indices, updates, shape)
