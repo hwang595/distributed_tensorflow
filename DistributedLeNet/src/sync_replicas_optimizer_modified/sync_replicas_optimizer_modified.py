@@ -291,8 +291,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     # Gradient accum creation
     with ops.name_scope(None, self._name):
-      should_stop_list = np.zeros(self._total_num_replicas)
-      should_stop_counter = 0
+      should_stop_list = tf.Variable(tf.zeros([self._total_num_replicas], dtype=tf.float64))
       for grad, var in grads_and_vars:
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
@@ -374,12 +373,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 indices = tf.constant([[x_idx]])
                 updates = tf.constant([1])
                 shape = tf.constant([shape])
-                scatter = tf.scatter_nd(indices, updates, shape)
-                should_stop_list = tf.Variable(should_stop_list)
+                scatter_tmp = tf.scatter_nd(indices, updates, shape)
+                scatter = tf.cast(scatter_tmp, tf.float64)
                 result = should_stop_list + scatter
                 return result
               def fn2(should_stop_list):
-                return tf.Variable(should_stop_list)
+                return should_stop_list
               
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
