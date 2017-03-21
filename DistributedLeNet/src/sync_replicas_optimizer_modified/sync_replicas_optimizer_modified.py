@@ -290,7 +290,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     # Gradient accum creation
     with ops.name_scope(None, self._name):
-      should_stop_list = []
+      should_stop_list = np.zeros(self._total_num_replicas)
       should_stop_counter = 0
       for grad, var in grads_and_vars:
         var_list.append(var)
@@ -309,7 +309,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
             grad_accum = data_flow_ops.SparseConditionalAccumulator(
               grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
           self._accumulator_list.append((grad_accum, var))
-          should_stop_list.append('0')
 
       """# Phase 1 gradient computation
       with ops.control_dependencies([update_local_step_op]):
@@ -370,11 +369,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)
               def fn1(should_stop_list, x_idx):
-                should_stop_list[x_idx] = '1'
-                return should_stop_list
+                should_stop_list[x_idx] = 1
+                return tf.Variable(should_stop_list)
               def fn2(should_stop_list):
                 should_stop_list[x_idx] = should_stop_list[x_idx]  
-                return should_stop_list
+                return tf.Variable(should_stop_list)
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 should_stop_list = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
@@ -385,7 +384,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
               should_stop_list_printer = logging_ops.Print(global_step,
-                                                   [ret] + [global_step],
+                                                   [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
               train_ops.append(should_stop_list_printer)
 
