@@ -226,11 +226,14 @@ def train(target, all_data, all_labels, cluster_spec):
         grads = opt.compute_gradients(total_loss)
         #compute weighted gradients here.
         #===============================================================================================
-       
+        '''
+        #define a placeholder for weighted vector, i.e. LS solution
         weight_vec_placeholder = tf.placeholder(dtype=tf.float32,
                                                 shape=(num_workers,))
         grad_list = [x[0] for x in grads]
         new_grad_list = []
+        #times gradient from each worker with the corresponding weight
+        #which is just scalar multiplication
         for g_idx in range(len(grad_list)):
             grad_on_worker = grad_list[g_idx]
             weight = tf.slice(weight_vec_placeholder, [FLAGS.task_id], [1])
@@ -238,17 +241,18 @@ def train(target, all_data, all_labels, cluster_spec):
             tf.logging.info(weight[0])
             new_grad_list.append(tf.scalar_mul(weight[0], grad_on_worker))
         grad_new = []
+        #regenerate the weighted gradients, merging all weighted vector
         for x_idx in range(len(grads)):
             grad_elem = grads[x_idx]
             grad_new.append((new_grad_list[x_idx], grad_elem[1]))
-        
+        '''
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-#            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
-            apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+#            apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
         else:
- #           apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
-            apply_gradients_op = opt.apply_gradients(grad_new, global_step=global_step)
+           apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
+#           apply_gradients_op = opt.apply_gradients(grad_new, global_step=global_step)
         with tf.control_dependencies([apply_gradients_op]):
             train_op = tf.identity(total_loss, name='train_op')            
 
@@ -323,7 +327,7 @@ def train(target, all_data, all_labels, cluster_spec):
             run_metadata = tf.RunMetadata()
 
             #=============================================================================================== 
-  
+            '''
             LS_start_time = time.time()
             interval_2 = np.arange(0, int(num_workers))
             workers_to_kill = np.random.choice(interval_2, FLAGS.num_worker_kill, replace=False)
@@ -359,14 +363,14 @@ def train(target, all_data, all_labels, cluster_spec):
             tf.logging.info(str(ls_solution)) 
             LS_duration = time.time() - LS_start_time
             tf.logging.info("LS run time: %s" % str(LS_duration))
-             
+            '''
             #===============================================================================================             
 
             if FLAGS.timeline_logging:
                 run_options.trace_level=tf.RunOptions.FULL_TRACE
                 run_options.output_partition_graphs=True
 
-            feed_dict[weight_vec_placeholder] = ls_solution
+            #feed_dict[weight_vec_placeholder] = ls_solution
             tf.logging.info("RUNNING SESSION... %f" % time.time())
             loss_value, step = sess.run(
                 #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
