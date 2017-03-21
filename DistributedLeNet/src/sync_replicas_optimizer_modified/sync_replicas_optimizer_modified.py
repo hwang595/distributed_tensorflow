@@ -374,6 +374,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                   lambda: tf.constant(1), lambda: tf.constant(0))
                 if ret == 1:
                   should_stop_list[x_idx] = '1'
+                  test_cond_printer = logging_ops.Print(global_step, [global_step],
+                                   message="Seeing this means return real num")
+                  train_ops.append(test_cond_printer)
                 should_stop_list_printer = logging_ops.Print(global_step,
                                                    [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
