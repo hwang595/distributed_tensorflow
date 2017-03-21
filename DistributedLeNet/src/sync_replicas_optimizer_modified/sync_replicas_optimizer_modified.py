@@ -522,9 +522,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     return init_tokens
 
-    def f_pos(self, should_stop_list, x_idx):
-      should_stop_list[x_idx] = '1'
-      return should_stop_list
+  def f_pos(self, should_stop_list, x_idx):
+    should_stop_list[x_idx] = '1'
+    return should_stop_list
 
-    def f_neg(self, should_stop_list):
-      return should_stop_list
+  def f_neg(self, should_stop_list):
+    return should_stop_list
