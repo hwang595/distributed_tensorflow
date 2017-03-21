@@ -368,7 +368,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)
-              
+              '''
               def fn1(should_stop_list, x_idx, shape):
                 indices = tf.constant([[x_idx]])
                 updates = tf.constant([1])
@@ -383,8 +383,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 should_stop_list = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            lambda:fn1(should_stop_list, x_idx, self._total_num_replicas), lambda:fn2(should_stop_list))
-                '''if ret == '1':
+                                           lambda:fn1(should_stop_list, x_idx, self._total_num_replicas), lambda:fn2(should_stop_list))
+              '''
+              '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
                                         message="Seeing this means cond ops works")
