@@ -369,14 +369,14 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)
-              def fn1(): 
-                return tf.constant(1)
-              def fn2():  
-                return tf.constant(0)
+              def fn1(a): 
+                return tf.constant(a+1)
+              def fn2(b):  
+                return tf.constant(b-1)
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
                 ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                            fn1, fn2)
+                                            lambda:fn1(x_idx), fn2(x_idx))
                 '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
