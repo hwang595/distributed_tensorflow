@@ -370,13 +370,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(accum_sizes_printer)
               for x_idx in range(len(self._accumulator_list)):
                 x = self._accumulator_list[x_idx]
-                ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                  lambda: tf.constant(1), lambda: tf.constant(0))
-                if ret == 1:
-                  should_stop_list[x_idx] = '1'
-                  test_cond_printer = logging_ops.Print(global_step, [global_step],
-                                   message="Seeing this means return real num")
-                  train_ops.append(test_cond_printer)
+                should_stop_list = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
+                                            f_pos(should_stop_list, x_idx), f_neg(should_stop_list))
+
                 should_stop_list_printer = logging_ops.Print(global_step,
                                                    [y for y in should_stop_list] + [global_step],
                                                    message="Should stop list status on ps")
@@ -525,3 +521,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         init_tokens.append(init_tokens_op)
 
     return init_tokens
+
+    def f_pos(self, should_stop_list, x_idx):
+      should_stop_list[x_idx] = '1'
+      return should_stop_list
+
+    def f_neg(self, should_stop_list):
+      return should_stop_list
