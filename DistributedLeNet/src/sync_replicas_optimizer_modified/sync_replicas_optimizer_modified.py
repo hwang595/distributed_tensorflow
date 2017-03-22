@@ -260,24 +260,25 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     if global_step is None:
       raise ValueError("Global step is required to check staleness")
 
+    self._global_step = global_step
+    train_ops = []
+    test_ops = []
+    aggregated_grad = []
+    var_list = []
+
     def f_pos():
-#      pos_printer = logging_ops.Print(global_step,
-#                           [global_step],
-#                           message="Pos indentifier on parameter server")
-#      train_ops.append(pos_printer)
+      pos_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Pos indentifier on parameter server")
+      test_ops.append(pos_printer)
       return tf.constant(1)
 
     def f_neg():
-#      neg_printer = logging_ops.Print(global_step,
-#                           [global_step],
-#                           message="Neg indentifier on parameter server")
-#      train_ops.append(neg_printer)
+      neg_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Neg indentifier on parameter server")
+      test_ops.append(neg_printer)
       return tf.constant(0)
-
-    self._global_step = global_step
-    train_ops = []
-    aggregated_grad = []
-    var_list = []
 
 #      worker_id_list_printer = logging_ops.Print(global_step,
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
@@ -349,7 +350,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
       with ops.control_dependencies([update_local_step_op]):
         for index, (grad, var) in enumerate(grads_and_vars):
           print_start_op = logging_ops.Print(global_step, [global_step], message="Starting to apply grads for variable %d" % index)
-          train_ops.append(print_start_op)
           with ops.device(var.device):
             if grad is None:
               continue
@@ -403,11 +403,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-             
-              should_stop_list_printer = logging_ops.Print(global_step,
-                                                   [ret],
-                                                   message="Should stop ret val status on ps")
-              train_ops.append(should_stop_list_printer)
+              with control_dependencies(test_ops):
+                should_stop_list_printer = logging_ops.Print(global_step,
+                                                     [ret],
+                                                     message="Should stop ret val status on ps")
+                train_ops.append(should_stop_list_printer)
               
 
       # Phase 2 gradient applying
