@@ -314,6 +314,8 @@ def train(target, dataset, cluster_spec):
       examples_per_sec = FLAGS.batch_size / float(duration)
       format_str = ('Worker %d: %s: step %d, loss = %f'
                     '(%.1f examples/sec; %.3f  sec/batch)')
+      print(duration)
+      print("=========================================================================")
       tf.logging.info(format_str %
                       (FLAGS.task_id, datetime.now(), step, loss_value,
                          examples_per_sec, 
