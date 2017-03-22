@@ -361,14 +361,26 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     grad, local_step=self._local_step._ref())
                   with ops.control_dependencies([apply_grad_op]):                  
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
-                    train_ops.append(finished_print_op)         
+                    train_ops.append(finished_print_op)
+
+            def f_pos():
+                pos_printer = logging_ops.Print(global_step,
+                                     [global_step],
+                                     message="Pos indentifier on parameter server")
+                train_ops.append(pos_printer)
+            def f_neg():
+                neg_printer = logging_ops.Print(global_step,
+                                     [global_step],
+                                     message="Neg indentifier on parameter server")
+                train_ops.append(neg_printer)
             with ops.control_dependencies([apply_grad_op]):          
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), lambda:tf.constant(1), lambda:tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], shape=[3, 4]))
+              tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), f_pos, f_neg)
+              '''
               if isinstance(ret, ops.Tensor):
                 pos_printer = logging_ops.Print(global_step,
                                                    [global_step],
@@ -378,7 +390,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                 neg_printer = logging_ops.Print(global_step,
                                                    [global_step],
                                                    message="Neg indentifier on parameter server")
-                train_ops.append(neg_printer)                
+                train_ops.append(neg_printer)
+              '''              
               '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
