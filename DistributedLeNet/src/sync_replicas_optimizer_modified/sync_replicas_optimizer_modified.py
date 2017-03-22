@@ -383,7 +383,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
-                            tf.constant(1), tf.constant(0))
+                            lambda:tf.constant(1), lambda:tf.constant(0))
               '''
               if isinstance(ret, ops.Tensor):
                 pos_printer = logging_ops.Print(global_step,
