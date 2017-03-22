@@ -403,7 +403,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-              with control_dependencies(test_ops):
+              with ops.control_dependencies(test_ops):
                 should_stop_list_printer = logging_ops.Print(global_step,
                                                      [ret],
                                                      message="Should stop ret val status on ps")
