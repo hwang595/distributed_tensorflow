@@ -260,6 +260,20 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     if global_step is None:
       raise ValueError("Global step is required to check staleness")
 
+    def f_pos():
+      pos_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Pos indentifier on parameter server")
+      train_ops.append(pos_printer)
+      return tf.constant(1)
+
+    def f_neg():
+      neg_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Neg indentifier on parameter server")
+      train_ops.append(neg_printer)
+      return tf.constant(0)
+
     self._global_step = global_step
     train_ops = []
     aggregated_grad = []
@@ -365,26 +379,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     train_ops.append(finished_print_op)
             
             with ops.control_dependencies([apply_grad_op]):
-              def f_pos():
-                pos_printer = logging_ops.Print(global_step,
-                                     [global_step],
-                                     message="Pos indentifier on parameter server")
-                train_ops.append(pos_printer)
-                return tf.constant(1)
-
-              def f_neg():
-                neg_printer = logging_ops.Print(global_step,
-                                     [global_step],
-                                     message="Neg indentifier on parameter server")
-                train_ops.append(neg_printer)
-                return tf.constant(0)
-
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
+              tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
               '''
               if isinstance(ret, ops.Tensor):
