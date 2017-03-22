@@ -369,8 +369,18 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                         lambda:tf.constant(1), lambda:tf.constant(0))
-
+                                         lambda:tf.Tensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4]), 
+                                         lambda:tf.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4]))
+              if isinstance(ret, ops.Tensor):
+                pos_printer = logging_ops.Print(global_step,
+                                                   [global_step],
+                                                   message="Pos indentifier on parameter server")
+                train_ops.append(pos_printer)
+              elif isinstance(ret, ops.SparseTensor):
+                neg_printer = logging_ops.Print(global_step,
+                                                   [global_step],
+                                                   message="Neg indentifier on parameter server")
+                train_ops.append(neg_printer)                
               '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
