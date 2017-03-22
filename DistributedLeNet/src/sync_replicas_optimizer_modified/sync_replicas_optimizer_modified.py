@@ -362,7 +362,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   with ops.control_dependencies([apply_grad_op]):                  
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-
+            '''
             def f_pos():
                 pos_printer = logging_ops.Print(global_step,
                                      [global_step],
@@ -375,14 +375,15 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                      message="Neg indentifier on parameter server")
                 train_ops.append(neg_printer)
                 return tf.constant(0)
-
+            '''
             with ops.control_dependencies([apply_grad_op]):          
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), f_pos, f_neg)
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
+                            tf.constant(1), tf.constant(0))
               '''
               if isinstance(ret, ops.Tensor):
                 pos_printer = logging_ops.Print(global_step,
@@ -400,12 +401,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-              '''
+              
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [ret],
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
-              '''
 
 
       # Phase 2 gradient applying
