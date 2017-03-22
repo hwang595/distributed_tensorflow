@@ -45,19 +45,6 @@ FLAGS = tf.app.flags.FLAGS
 # consistent with how gradients are aggregated (averaged) within a batch in a
 # replica.
 
-def f_pos():
-    pos_printer = logging_ops.Print(global_step,
-                         [global_step],
-                         message="Pos indentifier on parameter server")
-    train_ops.append(pos_printer)
-    return tf.constant(1)
-def f_neg():
-    neg_printer = logging_ops.Print(global_step,
-                         [global_step],
-                         message="Neg indentifier on parameter server")
-    train_ops.append(neg_printer)
-    return tf.constant(0)
-
 class TimeoutReplicasOptimizer(optimizer.Optimizer):
   """Class to synchronize, aggregate gradients and pass them to the optimizer.
   In a typical asynchronous training environment, it's common to have some
@@ -552,3 +539,17 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         init_tokens.append(init_tokens_op)
 
     return init_tokens
+
+  def f_pos(self):
+    pos_printer = logging_ops.Print(global_step,
+                         [global_step],
+                         message="Pos indentifier on parameter server")
+    train_ops.append(pos_printer)
+    return tf.constant(1)
+
+  def f_neg(self):
+    neg_printer = logging_ops.Print(global_step,
+                         [global_step],
+                         message="Neg indentifier on parameter server")
+    train_ops.append(neg_printer)
+    return tf.constant(0)
