@@ -234,20 +234,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         with ops.control_dependencies([grad]):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
-      
-  def f_pos(self):
-    pos_printer = logging_ops.Print(global_step,
-                         [global_step],
-                         message="Pos indentifier on parameter server")
-    train_ops.append(pos_printer)
-    return tf.constant(1)
-
-  def f_neg(self):
-    neg_printer = logging_ops.Print(global_step,
-                         [global_step],
-                         message="Neg indentifier on parameter server")
-    train_ops.append(neg_printer)
-    return tf.constant(0)
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
     """Apply gradients to variables.
@@ -378,7 +364,21 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
             
-            with ops.control_dependencies([apply_grad_op]):          
+            with ops.control_dependencies([apply_grad_op]):
+              def f_pos():
+                pos_printer = logging_ops.Print(global_step,
+                                     [global_step],
+                                     message="Pos indentifier on parameter server")
+                train_ops.append(pos_printer)
+                return tf.constant(1)
+
+              def f_neg():
+                neg_printer = logging_ops.Print(global_step,
+                                     [global_step],
+                                     message="Neg indentifier on parameter server")
+                train_ops.append(neg_printer)
+                return tf.constant(0)
+
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
