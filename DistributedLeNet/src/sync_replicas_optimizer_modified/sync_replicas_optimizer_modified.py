@@ -291,7 +291,6 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     # Gradient accum creation
     with ops.name_scope(None, self._name):
-      should_stop_list = tf.Variable(tf.zeros([self._total_num_replicas], dtype=tf.float64))
       for grad, var in grads_and_vars:
         var_list.append(var)
         tf.logging.info("Grad " + str(grad) + " assigned to " + str(var.device))
@@ -367,35 +366,22 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
-              train_ops.append(accum_sizes_printer)
-              '''
-              def fn1(should_stop_list, x_idx, shape):
-                indices = tf.constant([[x_idx]])
-                updates = tf.constant([1])
-                shape = tf.constant([shape])
-                scatter_tmp = tf.scatter_nd(indices, updates, shape)
-                scatter = tf.cast(scatter_tmp, tf.float64)
-                result = should_stop_list + scatter
-                return result
-              def fn2(should_stop_list):
-                return should_stop_list
-              
-              for x_idx in range(len(self._accumulator_list)):
-                x = self._accumulator_list[x_idx]
-                should_stop_list = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
-                                           lambda:fn1(should_stop_list, x_idx, self._total_num_replicas), lambda:fn2(should_stop_list))
-              '''
+              train_ops.append(accum_sizes_printer)              
+              x = self._accumulator_list[0]
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison),
+                                         lambda:tf.constant(1), lambda:tf.constant(0))
+
               '''if ret == '1':
                   test_cond_printer = logging_ops.Print(global_step,
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-              '''
+              
               should_stop_list_printer = logging_ops.Print(global_step,
-                                                   [should_stop_list],
-                                                   message="Should stop list status on ps")
+                                                   [ret],
+                                                   message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
-              '''
+
 
       # Phase 2 gradient applying
       for index, (grad, var) in enumerate(grads_and_vars):
