@@ -316,7 +316,8 @@ def train(target, dataset, cluster_spec):
                     '(%.1f examples/sec; %.3f  sec/batch)')
       tf.logging.info(format_str %
                       (FLAGS.task_id, datetime.now(), step, loss_value,
-                         examples_per_sec, duration))
+                         examples_per_sec, 
+                         duration))
 
       # Determine if the summary_op should be run on the chief worker.
       if is_chief and next_summary_time < time.time() and FLAGS.should_summarize:

@@ -375,7 +375,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                      message="Neg indentifier on parameter server")
                 train_ops.append(neg_printer)
                 return tf.constant(0)
-                
+
             with ops.control_dependencies([apply_grad_op]):          
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
@@ -400,11 +400,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-              
+              '''
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [ret],
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
+              '''
 
 
       # Phase 2 gradient applying
