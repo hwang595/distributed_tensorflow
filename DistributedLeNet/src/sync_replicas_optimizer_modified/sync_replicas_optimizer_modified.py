@@ -265,14 +265,14 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                            [global_step],
                            message="Pos indentifier on parameter server")
       train_ops.append(pos_printer)
-      return
+      return None
 
     def f_neg():
       neg_printer = logging_ops.Print(global_step,
                            [global_step],
                            message="Neg indentifier on parameter server")
       train_ops.append(neg_printer)
-      return
+      return None
 
     self._global_step = global_step
     train_ops = []
