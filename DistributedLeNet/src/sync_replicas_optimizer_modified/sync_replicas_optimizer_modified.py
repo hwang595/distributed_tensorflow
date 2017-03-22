@@ -368,18 +368,21 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                      [global_step],
                                      message="Pos indentifier on parameter server")
                 train_ops.append(pos_printer)
+                return tf.constant(1)
             def f_neg():
                 neg_printer = logging_ops.Print(global_step,
                                      [global_step],
                                      message="Neg indentifier on parameter server")
                 train_ops.append(neg_printer)
+                return tf.constant(0)
+                
             with ops.control_dependencies([apply_grad_op]):          
               accum_sizes_printer = logging_ops.Print(global_step,
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), f_pos, f_neg)
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), f_pos, f_neg)
               '''
               if isinstance(ret, ops.Tensor):
                 pos_printer = logging_ops.Print(global_step,
