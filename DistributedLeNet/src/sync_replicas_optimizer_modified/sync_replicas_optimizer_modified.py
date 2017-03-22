@@ -384,7 +384,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
               '''
               if isinstance(ret, ops.Tensor):
