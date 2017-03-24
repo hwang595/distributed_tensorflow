@@ -332,8 +332,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
     chief_init_ops = [self.local_step_init_op]
     '''
-    self.ready_for_local_init_op = variables.report_uninitialized_variables(
-      variables.all_variables())
+#    self.ready_for_local_init_op = variables.report_uninitialized_variables(
+#      variables.all_variables())
 
     # The wait op waits for the current worker to dequeue a token from its respective token queue
     self._wait_op = self._sync_token_queues[worker_id].dequeue()
