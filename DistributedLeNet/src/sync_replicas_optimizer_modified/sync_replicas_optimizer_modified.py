@@ -322,7 +322,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
 #                  message="Worker ID list status")
 #      train_ops.append(worker_id_list_printer)
-
+    '''
     self._local_step = variables.Variable(
         initial_value=0,
         trainable=False,
@@ -331,6 +331,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         name="sync_rep_local_step")
     self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
     chief_init_ops = [self.local_step_init_op]
+    '''
     self.ready_for_local_init_op = variables.report_uninitialized_variables(
       variables.all_variables())
 
@@ -517,12 +518,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
 
-      for accum, var in self._accumulator_list:
-        with ops.device(var.device):
-          chief_init_ops.append(
-              accum.set_global_step(
-                  global_step, name="SetGlobalStep"))
-      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
+#      for accum, var in self._accumulator_list:
+#        with ops.device(var.device):
+#          chief_init_ops.append(
+#              accum.set_global_step(
+#                  global_step, name="SetGlobalStep"))
+#      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
       self._gradients_applied = True
 
       return train_op
