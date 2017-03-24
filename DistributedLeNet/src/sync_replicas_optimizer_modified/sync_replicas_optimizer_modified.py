@@ -235,7 +235,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
-  def get_init_ops(self, grads_and_vars):
+  def get_init_ops(self, grads_and_vars, global_step=None):
     self._local_step = variables.Variable(
         initial_value=0,
         trainable=False,

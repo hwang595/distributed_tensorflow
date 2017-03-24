@@ -174,7 +174,7 @@ def train(target, dataset, cluster_spec):
 
     #Also,... some crazy experiments here:
     grads = opt.compute_gradients(total_loss)
-    opt.get_init_ops(grads)
+    opt.get_init_ops(grads, global_step=global_step)
     # Compute gradients with respect to the loss.
     '''
     grads = opt.compute_gradients(total_loss)
