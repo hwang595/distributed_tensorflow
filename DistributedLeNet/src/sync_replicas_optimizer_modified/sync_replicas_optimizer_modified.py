@@ -267,8 +267,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           chief_init_ops.append(
               accum.set_global_step(
                   global_step, name="SetGlobalStep"))
-      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
-    self._accumulator_list = []    
+    self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
+    self._accumulator_list = [] 
 
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=None):
