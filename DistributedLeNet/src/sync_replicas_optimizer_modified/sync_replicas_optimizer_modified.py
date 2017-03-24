@@ -235,7 +235,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
-  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
+  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=sess):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
@@ -265,7 +265,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     test_ops = []
     aggregated_grad = []
     var_list = []
-
+    '''
     def f_pos():
       pos_printer = logging_ops.Print(global_step,
                            [global_step],
@@ -279,6 +279,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                            message="Neg indentifier on parameter server")
       test_ops.append(neg_printer)
       return tf.constant(0)
+      '''
 
 #      worker_id_list_printer = logging_ops.Print(global_step,
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
@@ -384,9 +385,22 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
+              with session:
+                if x[0].num_accumulated().eval() > self._constant_for_comparison:
+                  pos_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Pos indentifier on parameter server")
+                  train_ops.append(pos_printer)
+                else:
+                  neg_printer = logging_ops.Print(global_step,
+                           [global_step],
+                           message="Neg indentifier on parameter server")
+                  train_ops.append(neg_printer)
+
+
+              '''
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
-              '''
               if isinstance(ret, ops.Tensor):
                 pos_printer = logging_ops.Print(global_step,
                                                    [global_step],
@@ -403,11 +417,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-              with ops.control_dependencies(test_ops):
-                should_stop_list_printer = logging_ops.Print(global_step,
-                                                     [ret],
-                                                     message="Should stop ret val status on ps")
-                train_ops.append(should_stop_list_printer)
+              should_stop_list_printer = logging_ops.Print(global_step,
+                                                   [ret],
+                                                   message="Should stop ret val status on ps")
+              train_ops.append(should_stop_list_printer)
               
 
       # Phase 2 gradient applying

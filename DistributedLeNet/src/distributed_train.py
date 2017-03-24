@@ -172,11 +172,13 @@ def train(target, dataset, cluster_spec):
         total_num_replicas=num_workers)
 
     # Compute gradients with respect to the loss.
+    '''
     grads = opt.compute_gradients(total_loss)
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
     else:
       apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
+    '''
 
     with tf.control_dependencies([apply_gradients_op]):
       train_op = tf.identity(total_loss, name='train_op')
@@ -230,6 +232,14 @@ def train(target, dataset, cluster_spec):
 
     # Get a session.
     sess = sv.prepare_or_wait_for_session(target, config=sess_config)
+
+    #Do some test here, which may be crazy...
+    grads = opt.compute_gradients(total_loss)
+    if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
+      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method,
+                                              session=sess)
+    else:
+      apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 
     # Start the queue runners.
     queue_runners = tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS)
