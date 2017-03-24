@@ -235,7 +235,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
-  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=sess):
+  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=None):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
