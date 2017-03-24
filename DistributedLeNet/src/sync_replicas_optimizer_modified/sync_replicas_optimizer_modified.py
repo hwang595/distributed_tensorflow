@@ -235,6 +235,42 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
+  def get_init_ops(self, grads_and_vars):
+    self._local_step = variables.Variable(
+        initial_value=0,
+        trainable=False,
+        collections=[ops.GraphKeys.LOCAL_VARIABLES],
+        dtype=global_step.dtype.base_dtype,
+        name="sync_rep_local_step")
+    self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
+    chief_init_ops = [self.local_step_init_op]
+
+    with ops.name_scope(None, self._name):
+      for grad, var in grads_and_vars:
+        with ops.device(var.device):
+          if grad is None:
+            continue
+          elif isinstance(grad, ops.Tensor):
+            grad_accum = data_flow_ops.ConditionalAccumulator(
+              grad.dtype,
+              shape=var.get_shape(),
+              shared_name=var.name + "/grad_accum")
+          else:
+            if not isinstance(grad, ops.IndexedSlices):
+              raise ValueError("Unknown grad type!")
+            grad_accum = data_flow_ops.SparseConditionalAccumulator(
+              grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
+          self._accumulator_list.append((grad_accum, var))
+
+    for accum, var in self._accumulator_list:
+        with ops.device(var.device):
+          chief_init_ops.append(
+              accum.set_global_step(
+                  global_step, name="SetGlobalStep"))
+      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
+    self._accumulator_list = []    
+
+
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=None):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the

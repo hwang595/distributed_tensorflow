@@ -24,6 +24,7 @@ from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import logging_ops
 from tensorflow.python.client import timeline
 from tensorflow.python.ops import data_flow_ops
+from tensorflow.python.ops import state_ops
 import mnist
 
 from timeout_manager import launch_manager
@@ -171,6 +172,9 @@ def train(target, dataset, cluster_spec):
         replicas_to_aggregate=num_replicas_to_aggregate,
         total_num_replicas=num_workers)
 
+    #Also,... some crazy experiments here:
+    grads = opt.compute_gradients(total_loss)
+    opt.get_init_ops(grads)
     # Compute gradients with respect to the loss.
     '''
     grads = opt.compute_gradients(total_loss)
@@ -237,7 +241,6 @@ def train(target, dataset, cluster_spec):
     sess = sv.prepare_or_wait_for_session(target, config=sess_config)
 
     #Do some test here, which may be crazy...
-    grads = opt.compute_gradients(total_loss)
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method,
                                               session=sess)
