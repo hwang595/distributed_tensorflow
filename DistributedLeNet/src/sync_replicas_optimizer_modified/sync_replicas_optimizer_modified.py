@@ -244,7 +244,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         name="sync_rep_local_step")
     self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
     chief_init_ops = [self.local_step_init_op]
-
+    self.ready_for_local_init_op = variables.report_uninitialized_variables(
+      variables.all_variables())
     with ops.name_scope(None, self._name):
       for grad, var in grads_and_vars:
         with ops.device(var.device):
