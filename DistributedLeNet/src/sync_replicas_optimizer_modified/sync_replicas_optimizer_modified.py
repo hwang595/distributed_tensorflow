@@ -378,9 +378,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
-#              x = self._accumulator_list[0]
-#              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
-#                            f_pos, f_neg)
+              x = self._accumulator_list[0]
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
+                            f_pos, f_neg)
               '''
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
@@ -400,10 +400,10 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                         [global_step],
                                         message="Seeing this means cond ops works")
                   train_ops.append(test_cond_printer)'''
-#              should_stop_list_printer = logging_ops.Print(global_step,
-#                                                   [ret],
-#                                                   message="Should stop ret val status on ps")
-#              train_ops.append(should_stop_list_printer)
+              should_stop_list_printer = logging_ops.Print(global_step,
+                                                   [ret],
+                                                   message="Should stop ret val status on ps")
+              train_ops.append(should_stop_list_printer)
               
 
       # Phase 2 gradient applying
