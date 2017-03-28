@@ -267,11 +267,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     var_list = []
 
     def f_pos():
-      ret_pos = [i for i in range(self._construtor)]
+      ret_pos = [tf.constant(i) for i in range(self._construtor)]
       return ret_pos
 
     def f_neg():
-      ret_neg = [i+5 for i in range(self._construtor)]
+      ret_neg = [tf.constant(i+5) for i in range(self._construtor)]
       return ret_neg
 
 
