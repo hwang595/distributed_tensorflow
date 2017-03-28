@@ -188,10 +188,10 @@ def train(target, dataset, cluster_spec):
     # Get chief queue_runners, init_tokens and clean_up_op, which is used to
     # synchronize replicas.
     # More details can be found in sync_replicas_optimizer.
-    '''
+
     chief_queue_runners = [opt.get_chief_queue_runner()]
     init_tokens_op = opt.get_init_tokens_op()
-    '''
+
     #clean_up_op = opt.get_clean_up_op()
 
     # Create a saver.
@@ -236,9 +236,6 @@ def train(target, dataset, cluster_spec):
 
     # Get a session.
     sess = sv.prepare_or_wait_for_session(target, config=sess_config)
-
-    chief_queue_runners = [opt.get_chief_queue_runner()]
-    init_tokens_op = opt.get_init_tokens_op()
 
     # Start the queue runners.
     queue_runners = tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS)
