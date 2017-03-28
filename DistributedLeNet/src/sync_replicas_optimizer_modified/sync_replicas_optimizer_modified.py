@@ -195,6 +195,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # the accumulator to be global step. This list contains list of the
     # following format: (accumulator, device).
     self._accumulator_list = []
+    self._construtor = 10
     self._constant_for_comparison = 2
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
@@ -235,44 +236,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
 
-  def get_init_ops(self, grads_and_vars, global_step=None):
-    self._local_step = variables.Variable(
-        initial_value=0,
-        trainable=False,
-        collections=[ops.GraphKeys.LOCAL_VARIABLES],
-        dtype=global_step.dtype.base_dtype,
-        name="sync_rep_local_step")
-    self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
-    chief_init_ops = [self.local_step_init_op]
-    self.ready_for_local_init_op = variables.report_uninitialized_variables(
-      variables.all_variables())
-    with ops.name_scope(None, self._name):
-      for grad, var in grads_and_vars:
-        with ops.device(var.device):
-          if grad is None:
-            continue
-          elif isinstance(grad, ops.Tensor):
-            grad_accum = data_flow_ops.ConditionalAccumulator(
-              grad.dtype,
-              shape=var.get_shape(),
-              shared_name=var.name + "/grad_accum")
-          else:
-            if not isinstance(grad, ops.IndexedSlices):
-              raise ValueError("Unknown grad type!")
-            grad_accum = data_flow_ops.SparseConditionalAccumulator(
-              grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
-          self._accumulator_list.append((grad_accum, var))
-
-    for accum, var in self._accumulator_list:
-        with ops.device(var.device):
-          chief_init_ops.append(
-              accum.set_global_step(
-                  global_step, name="SetGlobalStep"))
-    self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
-    self._accumulator_list = [] 
-
-
-  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False, session=None):
+  def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
     """Apply gradients to variables.
     This contains most of the synchronization implementation and also wraps the
     apply_gradients() from the real optimizer.
@@ -299,30 +263,23 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
 
     self._global_step = global_step
     train_ops = []
-    test_ops = []
     aggregated_grad = []
     var_list = []
-    '''
+
     def f_pos():
-      pos_printer = logging_ops.Print(global_step,
-                           [global_step],
-                           message="Pos indentifier on parameter server")
-      test_ops.append(pos_printer)
-      return tf.constant(1)
+      ret_pos = [i for i in range(self._construtor)]
+      return ret_pos
 
     def f_neg():
-      neg_printer = logging_ops.Print(global_step,
-                           [global_step],
-                           message="Neg indentifier on parameter server")
-      test_ops.append(neg_printer)
-      return tf.constant(0)
-      '''
+      ret_neg = [i+5 for i in range(self._construtor)]
+      return ret_neg
+
 
 #      worker_id_list_printer = logging_ops.Print(global_step,
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
 #                  message="Worker ID list status")
 #      train_ops.append(worker_id_list_printer)
-    '''
+    
     self._local_step = variables.Variable(
         initial_value=0,
         trainable=False,
@@ -331,9 +288,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         name="sync_rep_local_step")
     self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
     chief_init_ops = [self.local_step_init_op]
-    '''
-#    self.ready_for_local_init_op = variables.report_uninitialized_variables(
-#      variables.all_variables())
+
+    self.ready_for_local_init_op = variables.report_uninitialized_variables(
+      variables.all_variables())
 
     # The wait op waits for the current worker to dequeue a token from its respective token queue
     self._wait_op = self._sync_token_queues[worker_id].dequeue()
@@ -423,19 +380,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)              
               x = self._accumulator_list[0]
-              with session:
-                if x[0].num_accumulated().eval() > self._constant_for_comparison:
-                  pos_printer = logging_ops.Print(global_step,
-                           [global_step],
-                           message="Pos indentifier on parameter server")
-                  train_ops.append(pos_printer)
-                else:
-                  neg_printer = logging_ops.Print(global_step,
-                           [global_step],
-                           message="Neg indentifier on parameter server")
-                  train_ops.append(neg_printer)
-
-
+              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
+                            f_pos, f_neg)
               '''
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
@@ -518,12 +464,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
 
-#      for accum, var in self._accumulator_list:
-#        with ops.device(var.device):
-#          chief_init_ops.append(
-#              accum.set_global_step(
-#                  global_step, name="SetGlobalStep"))
-#      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
+      for accum, var in self._accumulator_list:
+        with ops.device(var.device):
+          chief_init_ops.append(
+              accum.set_global_step(
+                  global_step, name="SetGlobalStep"))
+      self.chief_init_op = control_flow_ops.group(*(chief_init_ops))
       self._gradients_applied = True
 
       return train_op
