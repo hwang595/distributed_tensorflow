@@ -424,7 +424,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                   message="Current length of should stop list"
                                                 )
                 train_ops.append(list_len_printer)
-                with control_dependencies([test_ops]):
+                with ops.control_dependencies([test_ops]):
                   queue_size_printer = logging_ops.Print(global_step,
                                                   [x.size() for x in self._should_stop_queues],
                                                   message="Current should stop queue size"
