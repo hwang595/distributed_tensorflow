@@ -200,12 +200,18 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
+    self._should_stop_queues = [0] * self._total_num_replicas
     for worker in range(self._total_num_replicas):
       with ops.device(global_step.device):
         self._sync_token_queues[worker] = data_flow_ops.FIFOQueue(-1,
                                                                   global_step.dtype.base_dtype,
                                                                   shapes=(),
                                                                   shared_name="sync_token_q_%d" % worker)
+        self._should_stop_queues[worker] = data_flow_ops.FIFOQueue(-1,
+                                                                  global_step.dtype.base_dtype,
+                                                                  shapes=(),
+                                                                  shared_name="should_stop_q_%d" % worker)
+
 
   def start_interval_updates(self, sess, timeout_client):
     def interval_update():
@@ -267,6 +273,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     var_list = []
 
     def f_pos():
+      for worker_id in range(self._total_num_replicas):
+        self._should_stop_queues[worker_id].enqueue(global_step)
       ret_pos = [tf.constant(i) for i in range(self._construtor)]
       return ret_pos
 
@@ -404,6 +412,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [ret],
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
+              queue_size_printer = logging_ops.Print(global_step,
+                                                [x.size() for x in self._should_stop_queues],
+                                                message="Current should stop queue size"
+                                              )
+              train_ops.append(queue_size_printer)
               
 
       # Phase 2 gradient applying
