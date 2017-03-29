@@ -202,9 +202,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     self._sync_token_queues = [0] * self._total_num_replicas
     self._should_stop_queues = [0] * self._total_num_replicas
     self._should_stop_list = []
-    self._should_stop_queue_total = data_flow_ops.FIFOQueue(-1,
-                                                            global_step.dtype.base_dtype,
-                                                            shapes=())
+    self._stop_queue = None
+
     for worker in range(self._total_num_replicas):
       with ops.device(global_step.device):
         self._sync_token_queues[worker] = data_flow_ops.FIFOQueue(-1,
@@ -215,6 +214,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                                   global_step.dtype.base_dtype,
                                                                   shapes=(),
                                                                   shared_name="should_stop_q_%d" % worker)
+    with ops.device(global_step.device), ops.name_scope(""):
+      stop_queue = (
+        data_flow_ops.FIFOQueue(-1,
+                                global_step.dtype.base_dtype,
+                                shapes=(),
+                                shared_name="stop_q"))
+      self._stop_queue = stop_queue
 
 
   def start_interval_updates(self, sess, timeout_client):
@@ -277,11 +283,13 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     var_list = []
 
     def f_pos():
-      enq_total_ops=self._should_stop_queue_total.enqueue(global_step)
+      enq_total_ops=self._stop_queue.enqueue(global_step)
+      '''
       for worker_id in range(self._total_num_replicas):
         enq_ops = self._should_stop_queues[worker_id].enqueue(global_step)
         with ops.control_dependencies([enq_ops]):
           L = []
+      '''
       self._should_stop_list.append(1)
 #      ret_pos = [tf.constant(i) for i in range(self._construtor)]
       with ops.control_dependencies([enq_total_ops]):
@@ -430,8 +438,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                               )
                 train_ops.append(queue_size_printer)
                 queue_total_printer = logging_ops.Print(global_step,
-                                                [self._should_stop_queue_total.size()],
-                                                message="should stop queue total size"
+                                                [self._stop_queue.size()],
+                                                message="shared should stop queue size"
                                               )
                 train_ops.append(queue_total_printer)
               
