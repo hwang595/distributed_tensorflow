@@ -477,9 +477,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           update_op = self._opt.apply_gradients(aggregated_grads_and_vars, global_step)
           self._update_op = update_op
           with ops.control_dependencies([update_op]):
-            deq_ops = self._stop_queue.dequeue_many(self._total_num_replicas)
-            with ops.control_dependencies([deq_ops]):
-              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
+#            deq_ops = self._stop_queue.dequeue_many(self._total_num_replicas)
+#            with ops.control_dependencies([deq_ops]):
+#              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
             sync_op = []
             for cur_worker_id in range(self._total_num_replicas):
               sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
