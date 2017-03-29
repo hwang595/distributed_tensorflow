@@ -420,7 +420,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               train_ops.append(should_stop_list_printer)
               with ops.control_dependencies([ret]):
                 list_len_printer = logging_ops.Print(global_step,
-                                                  [len(self._should_stop_list)],
+                                                  [len(test_ops)],
                                                   message="Current length of should stop list"
                                                 )
                 train_ops.append(list_len_printer)
