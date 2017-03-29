@@ -201,6 +201,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
     self._should_stop_queues = [0] * self._total_num_replicas
+    self._should_stop_list = []
     for worker in range(self._total_num_replicas):
       with ops.device(global_step.device):
         self._sync_token_queues[worker] = data_flow_ops.FIFOQueue(-1,
@@ -275,6 +276,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     def f_pos():
       for worker_id in range(self._total_num_replicas):
         self._should_stop_queues[worker_id].enqueue(global_step)
+      self._should_stop_list.append(global_step)
 #      ret_pos = [tf.constant(i) for i in range(self._construtor)]
       ret_pos = tf.Variable(33)
       return ret_pos
@@ -419,7 +421,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                   [x.size() for x in self._should_stop_queues],
                                                   message="Current should stop queue size"
                                                 )
-                train_ops.append(queue_size_printer)
+                list_len_printer = logging_ops.Print(global_step,
+                                                  [len(self._should_stop_list)],
+                                                  message="Current length of should stop list"
+                                                )
+                train_ops.append(list_len_printer)
               
 
       # Phase 2 gradient applying
