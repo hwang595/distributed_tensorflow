@@ -300,7 +300,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     def f_neg():
 #      ret_neg = [tf.constant(i+5) for i in range(self._construtor)]
       ret_neg = tf.Variable(22)
-      return return tf.Print(global_step, [global_step], message="Nothing to stop queue")
+      return tf.Print(global_step, [global_step], message="Nothing to stop queue")
 
 #      worker_id_list_printer = logging_ops.Print(global_step,
 #                  [a for a in self._worker_idx_list] + [worker_id] + [global_step],
