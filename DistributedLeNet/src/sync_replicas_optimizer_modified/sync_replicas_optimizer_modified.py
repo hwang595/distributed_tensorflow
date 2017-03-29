@@ -276,7 +276,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     def f_pos():
       for worker_id in range(self._total_num_replicas):
         self._should_stop_queues[worker_id].enqueue(global_step)
-      self._should_stop_list.append(global_step)
+#      self._should_stop_list.append(global_step)
 #      ret_pos = [tf.constant(i) for i in range(self._construtor)]
       ret_pos = tf.Variable(33)
       return ret_pos
