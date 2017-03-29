@@ -272,17 +272,16 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     train_ops = []
     aggregated_grad = []
     var_list = []
+    test_ops = []
 
     def f_pos():
-      test_ops = []
       for worker_id in range(self._total_num_replicas):
         enq_ops = self._should_stop_queues[worker_id].enqueue(global_step)
         test_ops.append(enq_ops)
       self._should_stop_list.append(1)
 #      ret_pos = [tf.constant(i) for i in range(self._construtor)]
-      with ops.control_dependencies([test_ops]):
-        ret_pos = tf.Variable(33)
-        return ret_pos
+      ret_pos = tf.Variable(33)
+      return ret_pos
 
     def f_neg():
 #      ret_neg = [tf.constant(i+5) for i in range(self._construtor)]
@@ -420,15 +419,17 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
               with ops.control_dependencies([ret]):
-                queue_size_printer = logging_ops.Print(global_step,
-                                                  [x.size() for x in self._should_stop_queues],
-                                                  message="Current should stop queue size"
-                                                )
                 list_len_printer = logging_ops.Print(global_step,
                                                   [len(self._should_stop_list)],
                                                   message="Current length of should stop list"
                                                 )
                 train_ops.append(list_len_printer)
+                with control_dependencies([test_ops]):
+                  queue_size_printer = logging_ops.Print(global_step,
+                                                  [x.size() for x in self._should_stop_queues],
+                                                  message="Current should stop queue size"
+                                                )
+                  train_ops.append(queue_size_printer)
               
 
       # Phase 2 gradient applying
