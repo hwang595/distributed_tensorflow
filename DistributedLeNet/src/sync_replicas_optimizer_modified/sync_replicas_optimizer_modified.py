@@ -412,11 +412,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    [ret],
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
-              queue_size_printer = logging_ops.Print(global_step,
-                                                [x.size() for x in self._should_stop_queues],
-                                                message="Current should stop queue size"
-                                              )
-              train_ops.append(queue_size_printer)
+              with ops.control_dependencies([ret]):
+                queue_size_printer = logging_ops.Print(global_step,
+                                                  [x.size() for x in self._should_stop_queues],
+                                                  message="Current should stop queue size"
+                                                )
+                train_ops.append(queue_size_printer)
               
 
       # Phase 2 gradient applying
