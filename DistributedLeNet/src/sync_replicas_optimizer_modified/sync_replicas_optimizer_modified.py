@@ -196,7 +196,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # following format: (accumulator, device).
     self._accumulator_list = []
     self._construtor = 10
-    self._constant_for_comparison = 2
+    self._constant_for_comparison = 3
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -414,36 +414,26 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                                                    message="Neg indentifier on parameter server")
                 train_ops.append(neg_printer)
               '''              
-              '''if ret == '1':
-                  test_cond_printer = logging_ops.Print(global_step,
-                                        [global_step],
-                                        message="Seeing this means cond ops works")
-                  train_ops.append(test_cond_printer)'''
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [ret],
                                                    message="Should stop ret val status on ps")
               train_ops.append(should_stop_list_printer)
-              queue_size_printer = logging_ops.Print(global_step,
-                                              [x.size() for x in self._should_stop_queues],
-                                              message="Current should stop queue size"
-                                            )
-              train_ops.append(queue_size_printer)
-              queue_total_printer = logging_ops.Print(global_step,
-                                              [self._should_stop_queue_total.size()],
-                                              message="should stop queue total size"
-                                            )
-              train_ops.append(queue_total_printer)
               with ops.control_dependencies([ret]):
                 list_len_printer = logging_ops.Print(global_step,
-                                                  [self._should_stop_list],
+                                                  [len(self._should_stop_list)],
                                                   message="Current length of should stop list"
                                                 )
                 train_ops.append(list_len_printer)
-              '''queue_size_printer = logging_ops.Print(global_step,
-                                              [x.size() for x in self._should_stop_queues],
-                                              message="Current should stop queue size"
-                                            )
-              train_ops.append(queue_size_printer)'''
+                queue_size_printer = logging_ops.Print(global_step,
+                                                [x.size() for x in self._should_stop_queues],
+                                                message="Current should stop queue size"
+                                              )
+                train_ops.append(queue_size_printer)
+                queue_total_printer = logging_ops.Print(global_step,
+                                                [self._should_stop_queue_total.size()],
+                                                message="should stop queue total size"
+                                              )
+                train_ops.append(queue_total_printer)
               
 
       # Phase 2 gradient applying
