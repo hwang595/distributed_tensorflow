@@ -541,8 +541,8 @@ def gradients_short_circuited(ys,
 #                                   in_grad_function)
                 with ops.control_dependencies([should_stop_queue_size_on_workers]):
                   in_grads = tf.cond(should_stop_queue.size() > 0,
-                                     in_grad_function,
-                                     zero_grad_function)
+                                     zero_grad_function,
+                                     in_grad_function)
             if type(in_grads) == tf.Tensor:
                 in_grads = [in_grads]
             for t_in, in_grad in zip(op.inputs, in_grads):
