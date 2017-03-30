@@ -42,7 +42,7 @@ def compute_gradients_with_injected_short_circuiting(loss, var_list=None,
                                                      should_stop_queue=None,
                                                      global_step=None,
                                                      grad_loss=None):
-    assert shoud_stop_queue is not None
+    assert should_stop_queue is not None
     if gate_gradients not in [optimizer.Optimizer.GATE_NONE, optimizer.Optimizer.GATE_OP,
                               optimizer.Optimizer.GATE_GRAPH]:
         raise ValueError("gate_gradients must be one of: Optimizer.GATE_NONE, "
