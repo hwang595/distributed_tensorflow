@@ -465,11 +465,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           self._update_op = update_op
           with ops.control_dependencies([update_op]):
             num_to_dequeue = self._stop_queue.size()
-#            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
-#            with ops.control_dependencies([deq_ops]):
-#              deq_status_printer = logging_ops.Print(
-#                            global_step, [global_step], message="Complelted the dequeue operation!")
-#              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
+            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
+            with ops.control_dependencies([deq_ops]):
+              deq_status_printer = logging_ops.Print(
+                           global_step, [global_step], message="Complelted the dequeue operation!")
+              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
+              train_ops.append(deq_status_printer)
             sync_op = []
             for cur_worker_id in range(self._total_num_replicas):
               sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
