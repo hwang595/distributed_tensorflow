@@ -493,7 +493,8 @@ def gradients_short_circuited(ys,
                     for index, input in enumerate(op.inputs):
                         zero_grad = tf.zeros(tf.shape(input), dtype=input.dtype)
                         if index == 0:
-                            zero_grad = logging_ops.Print(zero_grad, [zero_grad], message="I'm a straggler; Piping up zeros.")
+                            zero_grad = logging_ops.Print(zero_grad, [zero_grad], 
+                              message="I'm a straggler; Piping up zeros.")
                         zero_grads.append(zero_grad)
 
             return zero_grads
@@ -531,14 +532,17 @@ def gradients_short_circuited(ys,
             with ops.control_dependencies(out_grads):
                 new_global_step = tf.identity(global_step._ref())
                 new_global_step = logging_ops.Print(new_global_step, [new_global_step], message="CHECKING global step")
+                should_stop_queue_size_on_workers = logging_ops.Print(global_step, [should_stop_queue.size()],
+                    message="current should stop queue size on workers!")
                 #in_grads = tf.cond(new_global_step > local_global_step.ref(),
                 #in_grads = tf.cond(sync_token_queue.size() >= 10000,
 #                in_grads = tf.cond(local_global_step.ref() >= 10000,
 #                                   zero_grad_function,
 #                                   in_grad_function)
-                in_grads = tf.cond(should_stop_queue.size() > 0,
-                                   in_grad_function,
-                                   zero_grad_function)
+                with ops.control_dependencies([should_stop_queue_size_on_workers]):
+                  in_grads = tf.cond(should_stop_queue.size() > 0,
+                                     in_grad_function,
+                                     zero_grad_function)
             if type(in_grads) == tf.Tensor:
                 in_grads = [in_grads]
             for t_in, in_grad in zip(op.inputs, in_grads):
