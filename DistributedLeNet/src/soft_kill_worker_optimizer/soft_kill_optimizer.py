@@ -197,7 +197,7 @@ class SoftKillOptimizer(optimizer.Optimizer):
     self._variable_averages = variable_averages
     self._variables_to_average = variables_to_average
     self._total_num_replicas = total_num_replicas
-    self._global_step = None
+    self._global_step = global_step
 
     # The synchronization op will be executed in a queue runner which should
     # only be executed by one of the replicas (usually the chief).
@@ -265,6 +265,7 @@ class SoftKillOptimizer(optimizer.Optimizer):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
     '''
+    assert self._global_step is not None
     kwargs["should_stop_queue"] = self._stop_queue
     kwargs["global_step"] = self._global_step
     return short_circuit_compute_gradient.compute_gradients_with_injected_short_circuiting(*args, **kwargs)    
