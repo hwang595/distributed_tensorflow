@@ -409,20 +409,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
               x = self._accumulator_list[0]
               ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
                             f_pos, f_neg)
-              '''
-              ret = tf.cond(tf.greater_equal(x[0].num_accumulated(), self._constant_for_comparison), 
-                            f_pos, f_neg)
-              if isinstance(ret, ops.Tensor):
-                pos_printer = logging_ops.Print(global_step,
-                                                   [global_step],
-                                                   message="Pos indentifier on parameter server")
-                train_ops.append(pos_printer)
-              elif isinstance(ret, ops.SparseTensor):
-                neg_printer = logging_ops.Print(global_step,
-                                                   [global_step],
-                                                   message="Neg indentifier on parameter server")
-                train_ops.append(neg_printer)
-              '''              
+        
               should_stop_list_printer = logging_ops.Print(global_step,
                                                    [ret],
                                                    message="Should stop ret val status on ps")
@@ -478,11 +465,11 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           self._update_op = update_op
           with ops.control_dependencies([update_op]):
             num_to_dequeue = self._stop_queue.size()
-            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
-            with ops.control_dependencies([deq_ops]):
+#            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
+#            with ops.control_dependencies([deq_ops]):
 #              deq_status_printer = logging_ops.Print(
 #                            global_step, [global_step], message="Complelted the dequeue operation!")
-              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
+#              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
             sync_op = []
             for cur_worker_id in range(self._total_num_replicas):
               sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
