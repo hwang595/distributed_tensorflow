@@ -130,11 +130,12 @@ def train(target, dataset, cluster_spec):
 
     # Create a variable to count the number of train() calls. This equals the
     # number of updates applied to the variables. The PS holds the global step.
-    local_global_step = variables.Variable(initial_value=0, 
-                                            trainable=False, 
-                                            collections=[ops.GraphKeys.LOCAL_VARIABLES], 
-                                            dtype=tf.int64, 
-                                            name="local_global_step_%d" % FLAGS.task_id)
+    local_global_step = tf.get_variable("local_global_step_%d" % FLAGS.task_id, 
+                                        shape=[], 
+                                        dtype=tf.int64, 
+                                        initializer=tf.zeros_initializer, 
+                                        trainable=False)
+
     global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # Calculate the learning rate schedule.
