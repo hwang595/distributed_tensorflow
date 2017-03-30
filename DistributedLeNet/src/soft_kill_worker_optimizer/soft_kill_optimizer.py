@@ -36,7 +36,7 @@ from tensorflow.python.ops import logging_ops
 from tensorflow.python.training import optimizer
 from tensorflow.python.training import queue_runner
 
-tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
+#tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
 
 FLAGS = tf.app.flags.FLAGS
 # Please note that the gradients from replicas are averaged instead of summed
