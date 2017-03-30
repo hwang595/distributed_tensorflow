@@ -196,7 +196,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     # following format: (accumulator, device).
     self._accumulator_list = []
     self._construtor = 10
-    self._constant_for_comparison = 2
+    self._constant_for_comparison = 3
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas
@@ -477,12 +477,12 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
           update_op = self._opt.apply_gradients(aggregated_grads_and_vars, global_step)
           self._update_op = update_op
           with ops.control_dependencies([update_op]):
-#            num_to_dequeue = self._stop_queue.size()
-#            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
-#            with ops.control_dependencies([deq_ops]):
+            num_to_dequeue = self._stop_queue.size()
+            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
+            with ops.control_dependencies([deq_ops]):
 #              deq_status_printer = logging_ops.Print(
 #                            global_step, [global_step], message="Complelted the dequeue operation!")
-#              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
+              tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
             sync_op = []
             for cur_worker_id in range(self._total_num_replicas):
               sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
