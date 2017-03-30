@@ -281,6 +281,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     train_ops = []
     aggregated_grad = []
     var_list = []
+    printer_ops = []
 
     def f_pos():
       enq_total_ops=self._stop_queue.enqueue(global_step)
@@ -463,18 +464,20 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         with ops.control_dependencies([self.print_accum_sizes]):
           update_op = self._opt.apply_gradients(aggregated_grads_and_vars, global_step)
           self._update_op = update_op
-          with ops.control_dependencies([update_op]):
-            num_to_dequeue = self._stop_queue.size()
-            deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
-            with ops.control_dependencies([deq_ops]):
-              deq_status_printer = logging_ops.Print(
-                           global_step, [global_step], message="Complelted the dequeue operation!")
+          num_to_dequeue = self._stop_queue.size()
+          size_printer_1 = logging_ops.Print(global_step, [self.print_accum_sizes], message="queue size before dequeue")
+          printer_ops.append(size_printer_1)
+          deq_ops = self._stop_queue.dequeue_many(num_to_dequeue)
+          with ops.control_dependencies([deq_ops]):
               tf.Print(global_step, [global_step], message="Complelted the dequeue operation!")
-              train_ops.append(deq_status_printer)
-            sync_op = []
-            for cur_worker_id in range(self._total_num_replicas):
-              sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
-            sync_op = control_flow_ops.group(*(sync_op))
+              size_printer_2 = logging_ops.Print(global_step, [self.print_accum_sizes], message="queue size after dequeue")
+              printer_ops.append(size_printer_2)
+          with ops.control_dependencies(printer_ops):
+            with ops.control_dependencies([update_op]):
+              sync_op = []
+              for cur_worker_id in range(self._total_num_replicas):
+                sync_op.append(self._sync_token_queues[cur_worker_id].enqueue(global_step))
+              sync_op = control_flow_ops.group(*(sync_op))
 
         # dummy_queue is passed to the queue runner. Don't use the real queues
         # because the queue runner doesn't automatically reopen it once it
