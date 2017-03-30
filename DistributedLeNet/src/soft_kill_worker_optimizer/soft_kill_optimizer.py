@@ -32,6 +32,7 @@ from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import variables
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.ops import logging_ops
+import short_circuit_compute_gradient
 
 from tensorflow.python.training import optimizer
 from tensorflow.python.training import queue_runner
@@ -256,12 +257,17 @@ class SoftKillOptimizer(optimizer.Optimizer):
     Returns:
       A list of (gradient, variable) pairs.
     """
+    '''
     with ops.control_dependencies([logging_ops.Print(0, [0], message="Starting to compute gradients")]):
       grads_and_vars = self._opt.compute_gradients(*args, **kwargs)
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.control_dependencies([grad]):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
+    '''
+    kwargs["should_stop_queue"] = self._stop_queue
+    kwargs["global_step"] = self._global_step
+    return short_circuit_compute_gradient.compute_gradients_with_injected_short_circuiting(*args, **kwargs)    
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
     """Apply gradients to variables.
