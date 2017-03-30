@@ -58,7 +58,7 @@ def compute_gradients_with_injected_short_circuiting(loss, var_list=None,
         raise TypeError("Argument is not a tf.Variable: %s" % var)
     if not var_list:
       raise ValueError("No variables to optimize")
-    var_refs = [v.ref() for v in var_list]
+    var_refs = [v._ref() for v in var_list]
     grads = gradients.gradients_short_circuited(
         loss, var_refs, grad_ys=grad_loss,
         gate_gradients=(gate_gradients == optimizer.Optimizer.GATE_OP),
