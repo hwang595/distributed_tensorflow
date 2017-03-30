@@ -8,6 +8,7 @@ from __future__ import print_function
 from datetime import datetime
 from threading import Timer
 from sync_replicas_optimizer_modified.sync_replicas_optimizer_modified import TimeoutReplicasOptimizer
+from soft_kill_worker_optimizer.soft_kill_optimizer import SoftKillOptimizer
 import os.path
 import time
 
@@ -129,6 +130,11 @@ def train(target, dataset, cluster_spec):
 
     # Create a variable to count the number of train() calls. This equals the
     # number of updates applied to the variables. The PS holds the global step.
+    local_global_step = variables.Variable(initial_value=0, 
+                                            trainable=False, 
+                                            collections=[ops.GraphKeys.LOCAL_VARIABLES], 
+                                            dtype=tf.int64, 
+                                            name="local_global_step_%d" % FLAGS.task_id)
     global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # Calculate the learning rate schedule.
@@ -161,10 +167,12 @@ def train(target, dataset, cluster_spec):
 
     # Use V2 optimizer
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-      opt = TimeoutReplicasOptimizer(
+#      opt = TimeoutReplicasOptimizer(
+      opt = SoftKillOptimizer(
         opt,
-        global_step,
-        total_num_replicas=num_workers)
+        replicas_to_aggregate=num_replicas_to_aggregate,
+        total_num_replicas=num_workers,
+        global_step=global_step)
     else:
       opt = tf.train.SyncReplicasOptimizerV2(
 #      opt = tf.train.SyncReplicasOptimizer(

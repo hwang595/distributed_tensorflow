@@ -45,7 +45,7 @@ FLAGS = tf.app.flags.FLAGS
 # consistent with how gradients are aggregated (averaged) within a batch in a
 # replica.
 
-class TimeoutReplicasOptimizer(optimizer.Optimizer):
+class SoftKillOptimizer(optimizer.Optimizer):
   """Class to synchronize, aggregate gradients and pass them to the optimizer.
   In a typical asynchronous training environment, it's common to have some
   stale gradients. For example, with a N-replica asynchronous training,
@@ -143,7 +143,7 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
   @@get_chief_queue_runner
   @@get_init_tokens_op
   """
-
+  '''
   def __init__(self,
                opt,
                global_step,
@@ -151,6 +151,17 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                variable_averages=None,
                variables_to_average=None,
                use_locking=False,
+               name="sync_replicas"):
+  '''
+  def __init__(self,
+               opt,
+               replicas_to_aggregate,
+               total_num_replicas=None,
+               variable_averages=None,
+               variables_to_average=None,
+               use_locking=False,
+               global_step=None,
+               local_global_step=None,
                name="sync_replicas"):
     """Construct a sync_replicas optimizer.
     Args:
@@ -175,9 +186,9 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     if total_num_replicas is None:
       total_num_replicas = replicas_to_aggregate
 
-    super(TimeoutReplicasOptimizer, self).__init__(use_locking, name)
+    super(SoftKillOptimizer, self).__init__(use_locking, name)
     logging.info(
-        "TimeoutReplicas: total_num_replicas=%s",
+        "SoftKillReplicas: total_num_replicas=%s",
         total_num_replicas)
     self._n_updates = 0
     self._opt = opt
