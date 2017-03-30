@@ -64,7 +64,7 @@ def compute_gradients_with_injected_short_circuiting(loss, var_list=None,
         gate_gradients=(gate_gradients == optimizer.Optimizer.GATE_OP),
         aggregation_method=aggregation_method,
         colocate_gradients_with_ops=colocate_gradients_with_ops,
-        should_stop_queue=sync_token_queue,
+        should_stop_queue=should_stop_queue,
         global_step=global_step)
     if gate_gradients == optimizer.Optimizer.GATE_GRAPH:
         grads = control_flow_ops.tuple(grads)
