@@ -40,6 +40,8 @@ from tensorflow.python.training import queue_runner
 #tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
 
 FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_integer('should_stop_worker_num', 5,
+                           """The number of workers when ps gathered before trigger stop ops""")
 # Please note that the gradients from replicas are averaged instead of summed
 # (as in the old sync_replicas_optimizer) so you need to increase the learning
 # rate according to the number of replicas. This change is introduced to be
@@ -208,7 +210,7 @@ class SoftKillOptimizer(optimizer.Optimizer):
     # following format: (accumulator, device).
     self._accumulator_list = []
     self._construtor = 10
-    self._constant_for_comparison = 3
+    self._constant_for_comparison = FLAGS.should_stop_worker_num
     # For timeout, we have one token queue per worker. This makes it so that
     # a worker can not take the work of another worker if it finishes early.
     self._sync_token_queues = [0] * self._total_num_replicas

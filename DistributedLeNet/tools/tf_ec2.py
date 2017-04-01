@@ -29,10 +29,10 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 3,
+    "n_workers" : 8,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "4",
+    "num_replicas_to_aggregate" : "15",
 
     "method" : "reserved",
 
@@ -85,11 +85,12 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "256",
+    "batch_size" : "512",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
     "num_epochs_per_decay" : "1.0",
+    "should_stop_worker_num" : "8"
 
     # Train command specifies how the ps/workers execute tensorflow.
     # PS_HOSTS - special string replaced with actual list of ps hosts.
@@ -116,6 +117,7 @@ cfg = Cfg({
         "--interval_ms=1200 "
         "--num_replicas_to_aggregate=%(num_replicas_to_aggregate)s "
         "--job_name=JOB_NAME > %(base_out_dir)s/out_ROLE_ID 2>&1 &"
+        "--should_stop_worker_num=%(should_stop_worker_num)s "
     ],
 
     # Commands to run on the evaluator
