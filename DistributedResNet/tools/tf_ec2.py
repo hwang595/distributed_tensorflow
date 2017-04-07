@@ -32,7 +32,7 @@ cfg = Cfg({
     "n_workers" : 3,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "5",
+    "num_replicas_to_aggregate" : "4",
 
     "method" : "reserved",
 
@@ -112,7 +112,7 @@ cfg = Cfg({
         "--task_id=TASK_ID "
         "--timeline_logging=false "
         "--interval_method=false "
-        "--worker_times_cdf_method=false "
+        "--worker_times_cdf_method=True "
         "--interval_ms=1200 "
         "--num_replicas_to_aggregate=%(num_replicas_to_aggregate)s "
         "--job_name=JOB_NAME > %(base_out_dir)s/out_ROLE_ID 2>&1 &"

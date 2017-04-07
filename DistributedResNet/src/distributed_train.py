@@ -182,7 +182,10 @@ def train(target, all_data, all_labels, cluster_spec):
 
     with tf.device(
         tf.train.replica_device_setter(
-            worker_device='/job:worker/task:%d' % FLAGS.task_id,
+        #cpu only    
+#            worker_device='/job:worker/task:%d' % FLAGS.task_id,
+        #with gpu enabled
+            worker_device='/job:worker/task:%d/gpu:0' % FLAGS.task_id,
             cluster=cluster_spec)):
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
@@ -216,8 +219,8 @@ def train(target, all_data, all_labels, cluster_spec):
                 global_step,
                 total_num_replicas=num_workers)
         else:
-            opt = tf.train.SyncReplicasOptimizerV2(
-#            opt = tf.train.SyncReplicasOptimizer(
+#            opt = tf.train.SyncReplicasOptimizerV2(
+            opt = tf.train.SyncReplicasOptimizer(
                 opt,
                 replicas_to_aggregate=num_replicas_to_aggregate,
                 total_num_replicas=num_workers)
@@ -304,12 +307,12 @@ def train(target, all_data, all_labels, cluster_spec):
 
         if FLAGS.task_id == 0 and FLAGS.interval_method:
             opt.start_interval_updates(sess, timeout_client)   
-        
+        '''
         np.random.seed(SEED)
         b = np.ones(int(num_batches_per_epoch))
         interval = np.arange(0, int(num_batches_per_epoch))
         idx_list = np.random.choice(interval, int(num_workers), replace=False)     
-        
+        '''
         while not sv.should_stop():
         #    try:
             sys.stdout.flush()
