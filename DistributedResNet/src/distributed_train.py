@@ -166,9 +166,10 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size, loc
       # Start next epoch
       start = 0
       local_data_batch_idx = train_batch_size
-      assert train_batch_size <= self._num_examples
+      assert train_batch_size <= FLAGS.num_of_instances_cifar10
     end = local_data_batch_idx
-
+    tf.logging.info("Batch shapes %s" % str(train_data[start:end].get_shape()))
+    tf.logging.info("Standardized batch shapes %s" % str(whitening_image(train_data[start:end])))
     # Most of the time return the non distorted image
     return whitening_image(train_data[start:end]), train_labels[start:end], local_data_batch_idx, epoch_counter
 
