@@ -392,7 +392,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
             #feed_dict[weight_vec_placeholder] = ls_solution
             tf.logging.info("RUNNING SESSION... %f" % time.time())
-            tf.logging.info("Data batch index: %f, Current epoch idex: %f" % str(epoch_counter, local_data_batch_idx))
+            tf.logging.info("Data batch index: %f, Current epoch idex: %f" % (str(epoch_counter), str(local_data_batch_idx)))
             loss_value, step = sess.run(
                 #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
                 [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
