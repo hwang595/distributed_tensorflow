@@ -154,7 +154,7 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size, loc
     batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
     '''
     start = local_data_batch_idx
-    local_data_batch_idx += batch_size #next time your should start
+    local_data_batch_idx += train_batch_size #next time your should start
     if local_data_batch_idx > FLAGS.num_of_instances_cifar10:
       # Finished epoch
       epoch_counter += 1
@@ -165,8 +165,8 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size, loc
       train_labels = train_labels[perm]
       # Start next epoch
       start = 0
-      local_data_batch_idx = batch_size
-      assert batch_size <= self._num_examples
+      local_data_batch_idx = train_batch_size
+      assert train_batch_size <= self._num_examples
     end = local_data_batch_idx
 
     # Most of the time return the non distorted image
