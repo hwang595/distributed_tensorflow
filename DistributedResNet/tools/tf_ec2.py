@@ -29,27 +29,27 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 3,
+    "n_workers" : 12,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "4",
+    "num_replicas_to_aggregate" : "10",
 
-    "method" : "reserved",
+    "method" : "spot",
 
     # Region speficiation
     "region" : "us-west-2",
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.large",
-    "worker_type" : "t2.large",
-    "ps_type" : "t2.large",
-    "evaluator_type" : "t2.large",
+    "master_type" : "g2.2xlarge",
+    "worker_type" : "g2.2xlarge",
+    "ps_type" : "g2.2xlarge",
+    "evaluator_type" : "g2.2xlarge",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-35901755",
+    "image_id": "ami-fbb8399b",
 
     # Launch specifications
-    "spot_price" : "0.34",                 # Has to be a string
+    "spot_price" : "0.75",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
@@ -112,7 +112,7 @@ cfg = Cfg({
         "--task_id=TASK_ID "
         "--timeline_logging=false "
         "--interval_method=false "
-        "--worker_times_cdf_method=True "
+        "--worker_times_cdf_method=false "
         "--interval_ms=1200 "
         "--num_replicas_to_aggregate=%(num_replicas_to_aggregate)s "
         "--job_name=JOB_NAME > %(base_out_dir)s/out_ROLE_ID 2>&1 &"

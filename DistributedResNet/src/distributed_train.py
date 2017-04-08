@@ -37,7 +37,7 @@ np.set_printoptions(threshold=np.nan)
 tf.logging.set_verbosity(tf.logging.INFO)
 
 FLAGS = tf.app.flags.FLAGS
-SEED = 542
+SEED = 448
 
 tf.app.flags.DEFINE_boolean('worker_times_cdf_method', False, 'Track worker times cdf')
 tf.app.flags.DEFINE_boolean('interval_method', False, 'Use the interval method')
@@ -65,6 +65,7 @@ tf.app.flags.DEFINE_integer('num_worker_kill', 3, 'Number of workers to kill.')
 tf.app.flags.DEFINE_string('subset', 'train', 'Either "train" or "validation".')
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             'Whether to log device placement.')
+tf.app.flags.DEFINE_integer('num_of_instances_cifar10', 50000, 'Number of data instances in Cifar10 dataset')
 
 # Task ID is used to select the chief and also to access the local_step for
 # each replica to check staleness of the gradients in sync_replicas_optimizer.
@@ -106,11 +107,11 @@ RMSPROP_DECAY = 0.9                # Decay term for RMSProp.
 RMSPROP_MOMENTUM = 0.9             # Momentum in RMSProp.
 RMSPROP_EPSILON = 1.0              # Epsilon term for RMSProp.
 
-def fill_feed_dict(all_data, all_labels, image_placeholder, label_placeholder, batch_size):
-    train_batch_data, train_batch_labels = generate_augment_train_batch(
-                        all_data, all_labels, batch_size)
+def fill_feed_dict(all_data, all_labels, image_placeholder, label_placeholder, batch_size, local_data_batch_idx, epoch_counter):
+    train_batch_data, train_batch_labels, local_data_batch_idx, epoch_counter = generate_augment_train_batch(
+                        all_data, all_labels, batch_size, local_data_batch_idx, epoch_counter)
     feed_dict = {image_placeholder: train_batch_data, label_placeholder: train_batch_labels}
-    return feed_dict
+    return epoch_counter, local_data_batch_idx, feed_dict
 
 ## Helper functions
 def calc_loss(logits, labels):
@@ -138,7 +139,7 @@ def top_k_error(predictions, labels, k):
     num_correct = tf.reduce_sum(in_top1)
     return (batch_size - num_correct) / float(batch_size)
 
-def generate_augment_train_batch(train_data, train_labels, train_batch_size):
+def generate_augment_train_batch(train_data, train_labels, train_batch_size, local_data_batch_idx, epoch_counter):
     '''
     This function helps generate a batch of train data, and random crop, horizontally flip
     and whiten them at the same time
@@ -147,14 +148,29 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size):
     :param train_batch_size: int
     :return: augmented train batch data and labels. 4D numpy array and 1D numpy array
     '''
+    '''
     offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
     batch_data = train_data[offset:offset+train_batch_size, ...]
     batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
+    '''
+    start = local_data_batch_idx
+    local_data_batch_idx += batch_size #next time your should start
+    if local_data_batch_idx > FLAGS.num_of_instances_cifar10:
+      # Finished epoch
+      epoch_counter += 1
+      # Shuffle the data
+      perm = numpy.arange(FLAGS.num_of_instances_cifar10)
+      np.random.shuffle(perm)
+      train_data = train_data[perm]
+      train_labels = train_labels[perm]
+      # Start next epoch
+      start = 0
+      local_data_batch_idx = batch_size
+      assert batch_size <= self._num_examples
+    end = local_data_batch_idx
 
-    batch_data = whitening_image(batch_data)
-    batch_label = train_labels[offset:offset+train_batch_size]
-
-    return batch_data, batch_label
+    # Most of the time return the non distorted image
+    return whitening_image(train_data[start:end]), train_labels[start:end], local_data_batch_idx, epoch_counter
 
 
 def train(target, all_data, all_labels, cluster_spec):
@@ -303,6 +319,8 @@ def train(target, all_data, all_labels, cluster_spec):
         next_summary_time = time.time() + FLAGS.save_summaries_secs
         begin_time = time.time()
         cur_iteration = -1
+        local_data_batch_idx = 0
+        epoch_counter = 0
         iterations_finished = set()
 
         if FLAGS.task_id == 0 and FLAGS.interval_method:
@@ -323,12 +341,11 @@ def train(target, all_data, all_labels, cluster_spec):
                 sess.run([opt._wait_op])
                 timeout_client.broadcast_worker_dequeued_token(cur_iteration)
             start_time = time.time()
-            feed_dict = fill_feed_dict(
-                all_data, all_labels, image_placeholder, label_placeholder, FLAGS.batch_size)
+            epoch_counter, local_data_batch_idx, feed_dict = fill_feed_dict(
+                all_data, all_labels, image_placeholder, label_placeholder, FLAGS.batch_size, local_data_batch_idx, epoch_counter)
 
             run_options = tf.RunOptions()
             run_metadata = tf.RunMetadata()
-
             #=============================================================================================== 
             '''
             LS_start_time = time.time()
@@ -375,6 +392,7 @@ def train(target, all_data, all_labels, cluster_spec):
 
             #feed_dict[weight_vec_placeholder] = ls_solution
             tf.logging.info("RUNNING SESSION... %f" % time.time())
+            tf.logging.info("Data batch index: %f, Current epoch idex: %f" % str(epoch_counter, local_data_batch_idx))
             loss_value, step = sess.run(
                 #[train_op, global_step], feed_dict={feed_dict, x}, run_metadata=run_metadata, options=run_options)
                 [train_op, global_step], feed_dict=feed_dict, run_metadata=run_metadata, options=run_options)
