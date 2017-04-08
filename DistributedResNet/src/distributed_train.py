@@ -159,7 +159,7 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size, loc
       # Finished epoch
       epoch_counter += 1
       # Shuffle the data
-      perm = numpy.arange(FLAGS.num_of_instances_cifar10)
+      perm = np.arange(FLAGS.num_of_instances_cifar10)
       np.random.shuffle(perm)
       train_data = train_data[perm]
       train_labels = train_labels[perm]
