@@ -168,10 +168,12 @@ def generate_augment_train_batch(train_data, train_labels, train_batch_size, loc
       local_data_batch_idx = train_batch_size
       assert train_batch_size <= FLAGS.num_of_instances_cifar10
     end = local_data_batch_idx
-    tf.logging.info("Batch shapes %s" % str(train_data[start:end].get_shape()))
-    tf.logging.info("Standardized batch shapes %s" % str(whitening_image(train_data[start:end])))
+    train_batch = whitening_image(train_data[start:end].reshape(train_batch_size, IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH))
+    batch_labels = train_labels[start:end]
+    tf.logging.info("Batch shapes %s" % str(train_batch.shape))
+    tf.logging.info("Standardized batch shapes %s" % str(whitening_image(train_batch).shape))
     # Most of the time return the non distorted image
-    return whitening_image(train_data[start:end]), train_labels[start:end], local_data_batch_idx, epoch_counter
+    return train_batch, batch_labels, local_data_batch_idx, epoch_counter
 
 
 def train(target, all_data, all_labels, cluster_spec):
