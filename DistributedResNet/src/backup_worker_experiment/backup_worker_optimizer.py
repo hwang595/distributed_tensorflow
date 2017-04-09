@@ -290,7 +290,7 @@ class BackupOptimizer(optimizer.Optimizer):
 
       with ops.device(global_step.device), ops.name_scope(""):
         # Replicas have to wait until they can get a token from the token queue.
-        with ops.control_dependencies(apply_grad_ops):
+        with ops.control_dependencies([apply_grad_ops]):
           worker_idx_printer = logging_ops.Print(self._local_step._ref(), [worker_id] + [global_step],
                                         message="Finished worker updates",
                                         name="FinishedWorkerUpdatesPrint")
