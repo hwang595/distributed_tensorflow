@@ -15,6 +15,7 @@ import pandas as pd
 
 from threading import Timer
 from sync_replicas_optimizer_modified.sync_replicas_optimizer_modified import TimeoutReplicasOptimizer
+from backup_worker_experiment.backup_worker_optimizer import BackupOptimizer
 import os.path
 import time
 
@@ -234,10 +235,17 @@ def train(target, all_data, all_labels, cluster_spec):
         
         opt = tf.train.AdamOptimizer(lr)
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
+            '''
             opt = TimeoutReplicasOptimizer(
                 opt,
                 global_step,
                 total_num_replicas=num_workers)
+            '''
+            opt = BackupOptimizer(
+                opt,
+                replicas_to_aggregate=num_replicas_to_aggregate,
+                total_num_replicas=num_workers
+                )
         else:
 #            opt = tf.train.SyncReplicasOptimizerV2(
             opt = tf.train.SyncReplicasOptimizer(
@@ -271,8 +279,8 @@ def train(target, all_data, all_labels, cluster_spec):
         '''
         #===============================================================================================
         if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
-            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
-#            apply_gradients_op = opt.apply_gradients(grad_new, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+ #           apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+            apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step)
         else:
            apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 #           apply_gradients_op = opt.apply_gradients(grad_new, global_step=global_step)
