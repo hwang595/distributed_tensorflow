@@ -29,10 +29,10 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 2,
+    "n_workers" : 4,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "3",
+    "num_replicas_to_aggregate" : "5",
 
     "method" : "spot",
 
@@ -49,7 +49,7 @@ cfg = Cfg({
     "image_id": "ami-fbb8399b",
 
     # Launch specifications
-    "spot_price" : "0.65",                 # Has to be a string
+    "spot_price" : "0.8",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
@@ -86,7 +86,7 @@ cfg = Cfg({
 
     # Model configuration
     "batch_size" : "256",
-    "max_steps" : "1500",
+    "max_steps" : "2000",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
     "num_epochs_per_decay" : "1.0",

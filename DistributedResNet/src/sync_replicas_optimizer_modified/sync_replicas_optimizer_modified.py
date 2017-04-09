@@ -226,12 +226,15 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     Returns:
       A list of (gradient, variable) pairs.
     """
+    '''
     with ops.control_dependencies([logging_ops.Print(0, [0], message="Starting to compute gradients")]):
       grads_and_vars = self._opt.compute_gradients(*args, **kwargs)
       for index, (grad, var) in enumerate(grads_and_vars):
         with ops.control_dependencies([grad]):
           grads_and_vars[index] = (logging_ops.Print(grad, [0], message="Done computing gradient %d" % index), var)
       return grads_and_vars
+    '''
+    return self._opt.compute_gradients(*args, **kwargs)
 
   def apply_gradients(self, grads_and_vars, worker_id, global_step=None, name=None, collect_cdfs=False):
     """Apply gradients to variables.
@@ -277,7 +280,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
     self.local_step_init_op = state_ops.assign(self._local_step, global_step._ref())
     chief_init_ops = [self.local_step_init_op]
     self.ready_for_local_init_op = variables.report_uninitialized_variables(
-      variables.all_variables())
+#      variables.all_variables())
+      tf.global_variables())
 
     # The wait op waits for the current worker to dequeue a token from its respective token queue
     self._wait_op = self._sync_token_queues[worker_id].dequeue()
@@ -437,7 +441,8 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
         with ops.control_dependencies(train_ops):
           # Worker finished applying gradients. Add token to phase1_finished_queue
           train_op = logging_ops.Print(self._local_step._ref(),
-                                       [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+#                                       [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
+                                        [worker_id] + [global_step],
                                        message="Finished worker updates",
                                        name="FinishedWorkerUpdatesPrint")
 
