@@ -241,8 +241,10 @@ class BackupOptimizer(optimizer.Optimizer):
                 grad.dtype,
                 shape=var.get_shape(),
                 shared_name=var.name + "/grad_accum")
-            train_ops.append(grad_accum.apply_grad(
-                grad, local_step=self._local_step))
+            apply_grad_ops = grad_accum.apply_grad(grad, local_step=self._local_step)
+            train_ops.append(apply_grad_ops)
+#            train_ops.append(grad_accum.apply_grad(
+#                grad, local_step=self._local_step))
             aggregated_grad.append(grad_accum.take_grad(
                 self._replicas_to_aggregate))
           else:
@@ -250,8 +252,10 @@ class BackupOptimizer(optimizer.Optimizer):
               raise ValueError("Unknown grad type!")
             grad_accum = data_flow_ops.SparseConditionalAccumulator(
                 grad.dtype, shape=(), shared_name=var.name + "/grad_accum")
-            train_ops.append(grad_accum.apply_indexed_slices_grad(
-                grad, local_step=self._local_step))
+            apply_grad_ops = grad_accum.apply_indexed_slices_grad(grad, local_step=self._local_step)
+            train_ops.append(apply_grad_ops)
+#            train_ops.append(grad_accum.apply_indexed_slices_grad(
+#                grad, local_step=self._local_step))
             aggregated_grad.append(grad_accum.take_indexed_slices_grad(
                 self._replicas_to_aggregate))
 
@@ -286,9 +290,13 @@ class BackupOptimizer(optimizer.Optimizer):
 
       with ops.device(global_step.device), ops.name_scope(""):
         # Replicas have to wait until they can get a token from the token queue.
+        with ops.control_dependencies(apply_grad_ops):
+          worker_idx_printer = logging_ops.Print(self._local_step._ref(), [worker_id] + [global_step],
+                                        message="Finished worker updates",
+                                        name="FinishedWorkerUpdatesPrint")
+          train_ops.append(worker_idx_printer)
         with ops.control_dependencies(train_ops):
           token = sync_token_queue.dequeue()
-          tf.logging.info('Done pushing gradients of worker: %s' % str(worker_id))
         train_op = state_ops.assign(self._local_step, token)
 
         with ops.control_dependencies([update_op]):
