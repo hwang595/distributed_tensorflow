@@ -370,13 +370,14 @@ class TimeoutReplicasOptimizer(optimizer.Optimizer):
                   with ops.control_dependencies([apply_grad_op]):                  
                     finished_print_op = logging_ops.Print(global_step, [global_step], message="Done applying grads for variable %d" % index)
                     train_ops.append(finished_print_op)
-  
+            '''
             with ops.control_dependencies([apply_grad_op]):          
               accum_sizes_printer = logging_ops.Print(global_step,
 #                                                   [x[0].num_accumulated() for x in self._accumulator_list] + [worker_id] + [global_step],
                                                   [worker_id] + [global_step],
                                                    message="Accum aggregated status on ps")
               train_ops.append(accum_sizes_printer)
+            '''
               '''
               train_ops.append(accum_sizes_printer)
               for x_idx in range(len(self._accumulator_list)):
