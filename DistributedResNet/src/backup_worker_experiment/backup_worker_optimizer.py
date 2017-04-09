@@ -295,8 +295,8 @@ class BackupOptimizer(optimizer.Optimizer):
                                         message="Finished worker updates",
                                         name="FinishedWorkerUpdatesPrint")
           train_ops.append(worker_idx_printer)
-        with ops.control_dependencies(train_ops):
-          token = sync_token_queue.dequeue()
+          with ops.control_dependencies(train_ops):
+            token = sync_token_queue.dequeue()
         train_op = state_ops.assign(self._local_step, token)
 
         with ops.control_dependencies([update_op]):
