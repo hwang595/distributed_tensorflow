@@ -42,7 +42,7 @@ def main(unused_args):
       if not tf.gfile.Exists(FLAGS.train_dir):
         tf.gfile.MakeDirs(FLAGS.train_dir)
 
-    tf.logging.info(server.target)
+    tf.logging.info("server_tager: %s" + str(server.target))
     distributed_train.train(server.target, dataset.train, cluster_spec)
 
 if __name__ == '__main__':

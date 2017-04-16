@@ -32,7 +32,7 @@ cfg = Cfg({
     "n_workers" : 1,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "4",
+    "num_replicas_to_aggregate" : "2",
 
     "method" : "reserved",
 
@@ -41,12 +41,12 @@ cfg = Cfg({
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "g2.2xlarge",
-    "worker_type" : "g2.2xlarge",
-    "ps_type" : "g2.2xlarge",
-    "evaluator_type" : "g2.2xlarge",
+    "master_type" : "t2.large",
+    "worker_type" : "t2.large",
+    "ps_type" : "t2.large",
+    "evaluator_type" : "t2.large",
 #    "image_id": "ami-2306ba43",
-    "image_id": "ami-a1198fc1",
+    "image_id": "ami-35901755",
 
     # Launch specifications
     "spot_price" : "0.65",                 # Has to be a string
