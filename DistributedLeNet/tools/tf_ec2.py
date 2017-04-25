@@ -29,7 +29,7 @@ cfg = Cfg({
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
-    "n_workers" : 1,
+    "n_workers" : 7,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
     "num_replicas_to_aggregate" : "2",
@@ -115,6 +115,7 @@ cfg = Cfg({
         "--interval_method=false "
         "--worker_times_cdf_method=false "
         "--should_stop_worker_num=%(should_stop_worker_num)s "
+        "--backup_worker_method=true "
         "--interval_ms=1200 "
         "--num_replicas_to_aggregate=%(num_replicas_to_aggregate)s "
         "--job_name=JOB_NAME > %(base_out_dir)s/out_ROLE_ID 2>&1 &"

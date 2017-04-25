@@ -9,6 +9,7 @@ from datetime import datetime
 from threading import Timer
 from sync_replicas_optimizer_modified.sync_replicas_optimizer_modified import TimeoutReplicasOptimizer
 from soft_kill_worker_optimizer.soft_kill_optimizer import SoftKillOptimizer
+from backup_worker_experiment.backup_worker_optimizer import BackupOptimizer
 import os.path
 import time
 
@@ -37,6 +38,7 @@ FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_boolean('worker_times_cdf_method', False, 'Track worker times cdf')
 tf.app.flags.DEFINE_boolean('interval_method', False, 'Use the interval method')
+tf.app.flags.DEFINE_boolean('backup_worker_method', False, 'Use for backup worker experiments')
 tf.app.flags.DEFINE_boolean('should_summarize', False, 'Whether Chief should write summaries.')
 tf.app.flags.DEFINE_boolean('timeline_logging', False, 'Whether to log timeline of events.')
 tf.app.flags.DEFINE_string('job_name', '', 'One of "ps", "worker"')
@@ -168,6 +170,12 @@ def train(target, dataset, cluster_spec):
         replicas_to_aggregate=num_replicas_to_aggregate,
         total_num_replicas=num_workers,
         global_step=global_step)
+    elif FLAGS.backup_worker_method:
+      opt = BackupOptimizer(
+            opt,
+            replicas_to_aggregate=num_replicas_to_aggregate,
+            total_num_replicas=num_workers
+            )
     else:
       opt = tf.train.SyncReplicasOptimizerV2(
 #      opt = tf.train.SyncReplicasOptimizer(
@@ -181,6 +189,8 @@ def train(target, dataset, cluster_spec):
 
     if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
+    elif FLAGS.backup_worker_method:
+      apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step)    
     else:
       apply_gradients_op = opt.apply_gradients(grads, global_step=global_step)
 
