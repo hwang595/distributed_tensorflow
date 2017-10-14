@@ -164,7 +164,7 @@ def train(target, dataset, cluster_spec):
     opt = tf.train.AdamOptimizer(lr)
 
     # Use V2 optimizer
-    if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
+    if FLAGS.interval_method or FLAGS.worker_times_cdf_method or FLAGS.soft_kill_method:
 #      opt = TimeoutReplicasOptimizer(
       opt = SoftKillOptimizer(
         opt,

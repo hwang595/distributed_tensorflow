@@ -25,7 +25,7 @@ class Cfg(dict):
 
 cfg = Cfg({
     "name" : "Timeout",      # Unique name for this specific configuration
-    "key_name": "HongyiWScript",          # Necessary to ssh into created instances
+    "key_name": "HongyiScript",          # Necessary to ssh into created instances
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
@@ -53,7 +53,7 @@ cfg = Cfg({
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
-    "path_to_keyfile" : "/home/hwang/My_Code/AWS/HongyiWScript.pem",
+    "path_to_keyfile" : "/home/hwang/My_Code/AWS/HongyiScript.pem",
 
     # NFS configuration
     # To set up these values, go to Services > ElasticFileSystem > Create new filesystem, and follow the directions.
