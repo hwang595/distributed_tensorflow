@@ -188,7 +188,7 @@ def train(target, dataset, cluster_spec):
     grads = opt.compute_gradients(total_loss)
     # Compute gradients with respect to the loss.
 
-    if FLAGS.interval_method or FLAGS.worker_times_cdf_method:
+    if FLAGS.interval_method or FLAGS.worker_times_cdf_method or FLAGS.soft_kill_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step, collect_cdfs=FLAGS.worker_times_cdf_method)
     elif FLAGS.backup_worker_method:
       apply_gradients_op = opt.apply_gradients(grads, FLAGS.task_id, global_step=global_step)    
