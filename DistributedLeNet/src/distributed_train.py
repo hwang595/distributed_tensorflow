@@ -39,6 +39,7 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_boolean('worker_times_cdf_method', False, 'Track worker times cdf')
 tf.app.flags.DEFINE_boolean('interval_method', False, 'Use the interval method')
 tf.app.flags.DEFINE_boolean('backup_worker_method', False, 'Use for backup worker experiments')
+tf.app.flags.DEFINE_boolean('soft_kill_method', False, 'Use for soft kill experiments')
 tf.app.flags.DEFINE_boolean('should_summarize', False, 'Whether Chief should write summaries.')
 tf.app.flags.DEFINE_boolean('timeline_logging', False, 'Whether to log timeline of events.')
 tf.app.flags.DEFINE_string('job_name', '', 'One of "ps", "worker"')
@@ -127,7 +128,7 @@ def train(target, dataset, cluster_spec):
   # Ops are assigned to worker by default.
   with tf.device(
       tf.train.replica_device_setter(
-        worker_device='/job:worker/task:%d/gpu:0' % FLAGS.task_id,
+        worker_device='/job:worker/task:%d/cpu:0' % FLAGS.task_id,
         cluster=cluster_spec)):
 
     # Create a variable to count the number of train() calls. This equals the

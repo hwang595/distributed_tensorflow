@@ -25,35 +25,35 @@ class Cfg(dict):
 
 cfg = Cfg({
     "name" : "Timeout",      # Unique name for this specific configuration
-    "key_name": "HongyiWKeyPair",          # Necessary to ssh into created instances
+    "key_name": "HongyiWScript",          # Necessary to ssh into created instances
 
     # Cluster topology
     "n_masters" : 1,                      # Should always be 1
     "n_workers" : 7,
     "n_ps" : 1,
     "n_evaluators" : 1,                   # Continually validates the model on the validation data
-    "num_replicas_to_aggregate" : "2",
+    "num_replicas_to_aggregate" : "8",
 
-    "method" : "reserved",
+    "method" : "spot",
 
     # Region speficiation
     "region" : "us-west-2",
     "availability_zone" : "us-west-2b",
 
     # Machine type - instance type configuration.
-    "master_type" : "t2.large",
-    "worker_type" : "t2.large",
-    "ps_type" : "t2.large",
-    "evaluator_type" : "t2.large",
+    "master_type" : "m4.2xlarge",
+    "worker_type" : "m4.2xlarge",
+    "ps_type" : "m4.2xlarge",
+    "evaluator_type" : "m4.2xlarge",
 #    "image_id": "ami-2306ba43",
     "image_id": "ami-35901755",
 
     # Launch specifications
-    "spot_price" : "0.65",                 # Has to be a string
+    "spot_price" : "0.2",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
-    "path_to_keyfile" : "/home/hwang/My_Code/AWS_keys/HongyiWKeyPair.pem",
+    "path_to_keyfile" : "/home/hwang/My_Code/AWS/HongyiWScript.pem",
 
     # NFS configuration
     # To set up these values, go to Services > ElasticFileSystem > Create new filesystem, and follow the directions.
@@ -85,7 +85,7 @@ cfg = Cfg({
     ],
 
     # Model configuration
-    "batch_size" : "128",
+    "batch_size" : "256",
     "max_steps" : "1500",
     "initial_learning_rate" : ".001",
     "learning_rate_decay_factor" : ".95",
@@ -115,7 +115,8 @@ cfg = Cfg({
         "--interval_method=false "
         "--worker_times_cdf_method=false "
         "--should_stop_worker_num=%(should_stop_worker_num)s "
-        "--backup_worker_method=true "
+        "--backup_worker_method=false "
+        "--soft_kill_method=True "
         "--interval_ms=1200 "
         "--num_replicas_to_aggregate=%(num_replicas_to_aggregate)s "
         "--job_name=JOB_NAME > %(base_out_dir)s/out_ROLE_ID 2>&1 &"
