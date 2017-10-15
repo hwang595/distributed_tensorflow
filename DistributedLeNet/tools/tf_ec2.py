@@ -49,7 +49,7 @@ cfg = Cfg({
     "image_id": "ami-35901755",
 
     # Launch specifications
-    "spot_price" : "0.2",                 # Has to be a string
+    "spot_price" : "0.16",                 # Has to be a string
 
     # SSH configuration
     "ssh_username" : "ubuntu",            # For sshing. E.G: ssh ssh_username@hostname
