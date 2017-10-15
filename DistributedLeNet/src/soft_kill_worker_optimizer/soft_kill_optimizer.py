@@ -40,7 +40,7 @@ from tensorflow.python.training import queue_runner
 #tf.app.flags.DEFINE_float('interval_ms', 1000, 'The interval ms')
 
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_integer('should_stop_worker_num', 5,
+tf.app.flags.DEFINE_integer('should_stop_worker_num', 8,
                            """The number of workers when ps gathered before trigger stop ops""")
 # Please note that the gradients from replicas are averaged instead of summed
 # (as in the old sync_replicas_optimizer) so you need to increase the learning
